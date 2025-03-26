@@ -23,6 +23,8 @@ public class HostGameManager : IDisposable
     private const string GameSceneName = "OutdoorsScene";
     private NetworkServer networkServer;
 
+    private const string NetworkTerrainManagerPath = "Prefabs/NetworkTerrainManager";
+
     public async Task StartHostAsync()
     {
 
@@ -80,11 +82,47 @@ public class HostGameManager : IDisposable
             //Data: Lobby'ye eklenen verileri içerir.
             CreateLobbyOptions lobbyOptions = new CreateLobbyOptions();
             lobbyOptions.IsPrivate = false;
+
+            // Generate a terrain seed for this lobby
+            int lobbyTerrainSeed;
+
+            // Eğer TerrainSeedManager'dan bir seed varsa onu kullan
+            if (TerrainSeedManager.CurrentSeed > 0)
+            {
+                lobbyTerrainSeed = TerrainSeedManager.CurrentSeed;
+                Debug.Log($"HostGameManager: TerrainSeedManager'dan seed alındı: {lobbyTerrainSeed}");
+            }
+            else
+            {
+                lobbyTerrainSeed = NetworkTerrainManager.GenerateSeedForNewLobby();
+                Debug.Log($"HostGameManager: Yeni seed üretildi: {lobbyTerrainSeed}");
+
+                // TerrainSeedManager'ı da güncelle
+                TerrainSeedManager.UpdateSeedFromLobby(lobbyTerrainSeed);
+            }
+
+            // Tüm MapGenerator örneklerine seed değerini doğrudan uygula
+            MapGenerator[] mapGenerators = GameObject.FindObjectsOfType<MapGenerator>(true);
+            foreach (MapGenerator mapGen in mapGenerators)
+            {
+                if (mapGen.noiseData != null)
+                {
+                    mapGen.noiseData.seed = lobbyTerrainSeed;
+                    Debug.Log($"Host: MapGenerator noiseData seed değeri güncellendi: {lobbyTerrainSeed}");
+                }
+            }
+
             lobbyOptions.Data = new Dictionary<string, DataObject>()
             {
-                {//JoinCode: Lobby'ye eklenen verileri içerir.
+                {
                     "JoinCode", new DataObject(DataObject.VisibilityOptions.Member,
                     value: joinCode)
+                },
+                {
+                    // Add terrain seed to lobby data
+                    NetworkTerrainManager.TERRAIN_SEED_KEY, new DataObject(
+                        DataObject.VisibilityOptions.Member,
+                        value: lobbyTerrainSeed.ToString())
                 }
             };
 
@@ -94,6 +132,9 @@ public class HostGameManager : IDisposable
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync($"{playerName}'s Lobby", MaxConnections, lobbyOptions);
 
             lobbyId = lobby.Id;
+
+            // Store the terrain seed for later use
+            NetworkTerrainManager.SetCustomSeed(lobbyTerrainSeed);
 
             //Lobby'ye heartbeat ping gönderimi. Çünkü Relay'de heartbeat ping gönderimi gerekiyor. 
             //Bu sayede Relay'de lobby'nin aktif olup olmadığını kontrol edebiliriz.
@@ -125,11 +166,53 @@ public class HostGameManager : IDisposable
         //Hostu Başlatıyoruz.   
         NetworkManager.Singleton.StartHost();
 
-
+        // First load the game scene
         NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, LoadSceneMode.Single);
-        //LoadSceneMode.Single: Bu seçenek, mevcut sahneyi kapatır ve yeni sahneyi yükler.
-        //LoadSceneMode.Additive: Bu seçenek, mevcut sahneyi korur ve yeni sahneyi ekler.
 
+        // Wait a frame to make sure the scene is loaded
+        await Task.Delay(100);
+
+        // Now instantiate the NetworkTerrainManager
+        if (GameObject.FindAnyObjectByType<NetworkTerrainManager>() == null)
+        {
+            // Load the prefab by resource path
+            GameObject networkTerrainManagerPrefab = Resources.Load<GameObject>(NetworkTerrainManagerPath);
+
+            if (networkTerrainManagerPrefab != null)
+            {
+                GameObject terrainManager = GameObject.Instantiate(networkTerrainManagerPrefab);
+
+                // NetworkTerrainManager'a seed değerini önce ayarla (Spawn öncesi)
+                NetworkTerrainManager ntm = terrainManager.GetComponent<NetworkTerrainManager>();
+                if (ntm != null)
+                {
+                    // CustomSeed zaten NetworkTerrainManager.SetCustomSeed() ile ayarlandı
+                    // bu yüzden tekrar ayarlamaya gerek yok
+                    Debug.Log($"NetworkTerrainManager CustomSeed set to {NetworkTerrainManager.CustomSeed} before spawn");
+                }
+
+                // Şimdi spawn et
+                terrainManager.GetComponent<NetworkObject>().Spawn();
+                Debug.Log("NetworkTerrainManager spawned successfully");
+
+                // Sahne tam olarak yüklenmesi için biraz bekle
+                await Task.Delay(200);
+            }
+            else
+            {
+                Debug.LogError($"Failed to load NetworkTerrainManager prefab from path: {NetworkTerrainManagerPath}");
+            }
+        }
+
+        // After spawning NetworkTerrainManager, ensure it gets the seed from the lobby
+        if (GameObject.FindAnyObjectByType<NetworkTerrainManager>() != null)
+        {
+            NetworkTerrainManager terrainManager = GameObject.FindAnyObjectByType<NetworkTerrainManager>();
+            if (terrainManager != null)
+            {
+                terrainManager.SetSeedFromLobby(NetworkTerrainManager.CustomSeed);
+            }
+        }
 
     }
 
@@ -151,23 +234,34 @@ public class HostGameManager : IDisposable
 
     public async void Dispose()
     {
-        HostSingleton.Instance.StopCoroutine(nameof(HeartbeatLobby));
-
-        if (!string.IsNullOrEmpty(lobbyId))
+        try
         {
-            try
+            // HostSingleton kontrolü ekleyin
+            if (HostSingleton.Instance != null)
             {
-                await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
-            }
-            catch (LobbyServiceException e)
-            {
-                Debug.Log(e);
+                HostSingleton.Instance.StopCoroutine(nameof(HeartbeatLobby));
             }
 
-            lobbyId = string.Empty;
+            if (!string.IsNullOrEmpty(lobbyId))
+            {
+                try
+                {
+                    await LobbyService.Instance.DeleteLobbyAsync(lobbyId);
+                }
+                catch (LobbyServiceException e)
+                {
+                    Debug.Log(e);
+                }
+
+                lobbyId = string.Empty;
+            }
+
+            networkServer?.Dispose();
         }
-
-        networkServer?.Dispose();
+        catch (Exception e)
+        {
+            Debug.LogError($"HostGameManager dispose hatası: {e.Message}");
+        }
     }
 
 }

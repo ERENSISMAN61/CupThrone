@@ -10,6 +10,10 @@ using Unity.Netcode;
 using Unity.Networking.Transport.Relay;
 using System.Text;
 using Unity.Services.Authentication;
+using Unity.Services.Lobbies;
+using Unity.Services.Lobbies.Models;
+using System.Collections.Generic;
+
 public class ClientGameManager : IDisposable
 {
     private const string MenuSceneName = "Menu";
@@ -51,6 +55,73 @@ public class ClientGameManager : IDisposable
         {
             Debug.LogError(e);
             return;
+        }
+
+        // Get the lobby information to retrieve the terrain seed
+        try
+        {
+            // Lobby aramak için seçenekleri oluşturuyoruz
+            QueryLobbiesOptions options = new QueryLobbiesOptions();
+
+            // Bu sefer filtreleme yapmıyoruz, tüm lobiler içinde bizim join code'umuza sahip olanı arayacağız
+            QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(options);
+
+            // Tüm lobiler arasında bizim join code'umuza sahip olanı buluyoruz
+            Lobby targetLobby = null;
+            foreach (Lobby lobby in response.Results)
+            {
+                if (lobby.Data != null &&
+                    lobby.Data.ContainsKey("JoinCode") &&
+                    lobby.Data["JoinCode"].Value == joinCode)
+                {
+                    targetLobby = lobby;
+                    break;
+                }
+            }
+
+            if (targetLobby != null)
+            {
+                // Terrain seed verisi var mı kontrol ediyoruz
+                if (targetLobby.Data != null &&
+                    targetLobby.Data.ContainsKey(NetworkTerrainManager.TERRAIN_SEED_KEY) &&
+                    !string.IsNullOrEmpty(targetLobby.Data[NetworkTerrainManager.TERRAIN_SEED_KEY].Value))
+                {
+                    string seedStr = targetLobby.Data[NetworkTerrainManager.TERRAIN_SEED_KEY].Value;
+                    int terrainSeed = int.Parse(seedStr);
+
+                    // NetworkTerrainManager için seed değerini ayarlıyoruz
+                    NetworkTerrainManager.SetCustomSeed(terrainSeed);
+
+                    // TerrainSeedManager için de seed değerini güncelliyoruz
+                    TerrainSeedManager.UpdateSeedFromLobby(terrainSeed);
+
+                    // Tüm MapGenerator örneklerini bul ve seed değerini doğrudan güncelle
+                    MapGenerator[] mapGenerators = GameObject.FindObjectsOfType<MapGenerator>(true);
+                    foreach (MapGenerator mapGen in mapGenerators)
+                    {
+                        if (mapGen.noiseData != null)
+                        {
+                            mapGen.noiseData.seed = terrainSeed;
+                            Debug.Log($"Client: MapGenerator noiseData seed değeri güncellendi: {terrainSeed}");
+                        }
+                    }
+
+                    Debug.Log($"Lobby'den terrain seed alındı: {terrainSeed}");
+                }
+                else
+                {
+                    Debug.LogWarning("Lobby verisinde terrain seed bulunamadı. Varsayılan seed kullanılacak.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"Bu join code'a sahip lobby bulunamadı: {joinCode}");
+            }
+        }
+        catch (LobbyServiceException e)
+        {
+            Debug.LogError($"Lobby verisi alınırken hata oluştu: {e}");
+            // Varsayılan seed'i kullanarak devam ediyoruz
         }
 
         //NetworkManager'ın UnityTransport bileşenini al

@@ -27,6 +27,22 @@ public class EndlessTerrain : MonoBehaviour
     {
         mapGenerator = FindAnyObjectByType<MapGenerator>();
 
+        // Wait for NetworkTerrainManager to set the seed
+        StartCoroutine(WaitForNetworkSeed());
+    }
+
+    private IEnumerator WaitForNetworkSeed()
+    {
+        // Wait for NetworkTerrainManager to be available and set the seed
+        NetworkTerrainManager networkTerrainManager = FindAnyObjectByType<NetworkTerrainManager>();
+
+        // If we're in a networked game, wait for the NetworkTerrainManager
+        if (networkTerrainManager != null && !networkTerrainManager.IsNetworkReady())
+        {
+            yield return new WaitUntil(() => networkTerrainManager.IsNetworkReady());
+        }
+
+        // Now continue with terrain initialization
         // Make the max view distance the value of the visibleDstThreshold of the lowest resolution LOD
         maxViewDst = detailLevels[detailLevels.Length - 1].visibleDstThreshold;
         // Subtract 1 because mesh is defined by the squares, not the vertices
