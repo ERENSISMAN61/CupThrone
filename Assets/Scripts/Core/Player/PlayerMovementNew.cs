@@ -83,9 +83,20 @@ public class PlayerMovementNew : NetworkBehaviour
     {
         if (IsOwner)
         {
-            // Move the character based on input
+            // Create horizontal movement vector
             Vector3 movement = new Vector3(movementInput.x, 0, movementInput.y) * movementSpeed;
-            rb.linearVelocity = bodyTransform.TransformDirection(movement);
+
+            // Transform to world space based on body orientation
+            Vector3 worldMovement = bodyTransform.TransformDirection(movement);
+
+            // Preserve the Y velocity (gravity effect) and only modify XZ movement
+            Vector3 newVelocity = new Vector3(
+                worldMovement.x,
+                rb.linearVelocity.y, // Keep the current Y velocity for gravity to work properly
+                worldMovement.z
+            );
+
+            rb.linearVelocity = newVelocity;
         }
     }
 }

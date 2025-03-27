@@ -18,7 +18,7 @@ public class TankPlayer : NetworkBehaviour
         Vector3 position = transform.position;
         position.y = 30f;
         transform.position = position;
-        Physics.gravity = new Vector3(0, -360.81f, 0);
+
 
         // Camera priority only for owner
         if (IsOwner)
