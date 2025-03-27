@@ -12,6 +12,8 @@ public class InputReader : ScriptableObject, IPlayerActions
     // Birincil ateşleme olayını tetikleyen event
     public event Action<bool> PrimaryFireEvent;
 
+    public event Action JumpEvent; // Zıplama olayını tetikleyen event
+
     public Vector2 AimPosition { get; private set; }
 
     private Controls controls; // oto generate edilmiş Kontroller scripti 
@@ -68,5 +70,14 @@ public class InputReader : ScriptableObject, IPlayerActions
     public void OnAim(InputAction.CallbackContext context)
     {
         AimPosition = context.ReadValue<Vector2>();
+    }
+
+    // Zıplama girişi alındığında çağrılır
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.performed) // Eylem gerçekleştiğinde
+        {
+            JumpEvent?.Invoke(); // Zıplama olayını tetikle
+        }
     }
 }

@@ -1616,6 +1616,10 @@ MonoBehaviour:
   animator: {fileID: 7142846660465775389}
   movementSpeed: 10
   turnSpeed: 50
+  jumpForce: 30
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!114 &7715923669668559701
 MonoBehaviour:
   m_ObjectHideFlags: 0

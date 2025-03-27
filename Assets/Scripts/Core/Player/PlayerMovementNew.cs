@@ -10,8 +10,11 @@ public class PlayerMovementNew : NetworkBehaviour
 
     [SerializeField] private float movementSpeed = 10f;
     [SerializeField] private float turnSpeed = 50f;
+    [SerializeField] private float jumpForce = 5f; // Zıplama kuvveti
+    [SerializeField] private LayerMask groundLayer; // Zemin kontrolü için layer
 
     private Vector2 movementInput;
+    private bool isGrounded;
 
     // NetworkVariables for animation parameters
     private NetworkVariable<float> networkSpeed = new NetworkVariable<float>(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -22,6 +25,7 @@ public class PlayerMovementNew : NetworkBehaviour
         if (IsOwner)
         {
             inputReader.MoveEvent += HandleMove;
+            inputReader.JumpEvent += HandleJump; // Zıplama olayını dinle
         }
     }
 
@@ -30,6 +34,7 @@ public class PlayerMovementNew : NetworkBehaviour
         if (IsOwner)
         {
             inputReader.MoveEvent -= HandleMove;
+            inputReader.JumpEvent -= HandleJump; // Zıplama olayını kaldır
         }
     }
 
@@ -38,10 +43,21 @@ public class PlayerMovementNew : NetworkBehaviour
         movementInput = movement;
     }
 
+    private void HandleJump()
+    {
+        if (isGrounded) // Eğer karakter zemindeyse zıpla
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+        }
+    }
+
     private void Update()
     {
         if (IsOwner)
         {
+            // Zemin kontrolü
+            isGrounded = Physics.Raycast(bodyTransform.position, Vector3.down, 1.1f, groundLayer);
+
             // Ensure the bodyTransform follows the parent object's position
             bodyTransform.position = rb.position;
 
@@ -60,6 +76,7 @@ public class PlayerMovementNew : NetworkBehaviour
         // Update the animator parameters for all clients
         animator.SetFloat("Speed", networkSpeed.Value);  // İleri/geri hareket için
         animator.SetFloat("Direction", networkDirection.Value); // Sağa/sola hareket için
+        animator.SetBool("IsGrounded", isGrounded); // Zemin durumunu animatöre gönder
     }
 
     private void FixedUpdate()
