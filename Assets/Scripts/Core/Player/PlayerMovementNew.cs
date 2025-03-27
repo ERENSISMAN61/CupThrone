@@ -55,6 +55,6 @@ public class PlayerMovementNew : NetworkBehaviour
     {
         // Move the character based on input
         Vector3 movement = new Vector3(movementInput.x, 0, movementInput.y) * movementSpeed;
-        rb.velocity = bodyTransform.TransformDirection(movement);
+        rb.linearVelocity = bodyTransform.TransformDirection(movement);
     }
 }
