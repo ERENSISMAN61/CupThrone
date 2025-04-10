@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -3881940774786284647, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1309375423
+      value: 2195868448
       objectReference: {fileID: 0}
     - target: {fileID: -3881940774786284647, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
@@ -19,6 +19,18 @@ PrefabInstance:
     - target: {fileID: 1361257874134610457, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
       propertyPath: m_Name
       value: RespawningCoin
+      objectReference: {fileID: 0}
+    - target: {fileID: 1850971198797605027, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1850971198797605027, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1850971198797605027, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1850971198797605027, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
       propertyPath: m_LocalPosition.x
@@ -76,11 +88,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 6986852468220763996}
   m_SourcePrefab: {fileID: 100100000, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
---- !u!23 &910877075449907466 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 712928438479000524, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
-  m_PrefabInstance: {fileID: 378515111078107846}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1703743500951136479 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1361257874134610457, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
@@ -99,7 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  meshRenderer: {fileID: 910877075449907466}
+  meshRenderer: {fileID: 3013258974254224125}
 --- !u!135 &6986852468220763996
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -119,5 +126,10 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1.3199999
+  m_Radius: 0.008
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &3013258974254224125 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3211627759994652731, guid: 25cb4f9745fb8654c812036d1fee8920, type: 3}
+  m_PrefabInstance: {fileID: 378515111078107846}
+  m_PrefabAsset: {fileID: 0}

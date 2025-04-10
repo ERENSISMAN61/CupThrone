@@ -22610,9 +22610,12 @@ MonoBehaviour:
   coinValue: 10
   xSpawnRange: {x: -150, y: 150}
   zSpawnRange: {x: -150, y: 150}
-  layerMask:
+  terrainLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 512
+  nonTerrainLayerMask:
+    serializedVersion: 2
+    m_Bits: 503
 --- !u!1 &1574174156
 GameObject:
   m_ObjectHideFlags: 0
