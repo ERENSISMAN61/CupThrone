@@ -14,10 +14,10 @@ public class TankPlayer : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // Set Y position for all players regardless of ownership
-        Vector3 position = transform.position;
-        position.y = 30f;
-        transform.position = position;
+        // // Set Y position for all players regardless of ownership
+        // Vector3 position = transform.position;
+        // position.y = 500f;
+        // transform.position = position;
 
 
         // Camera priority only for owner
@@ -25,5 +25,13 @@ public class TankPlayer : NetworkBehaviour
         {
             virtualCamera.Priority = ownerPriority;
         }
+    }
+
+    private void Start()
+    {
+        Vector3 position = transform.position;
+        position.y = 500f;
+        transform.position = position;
+
     }
 }

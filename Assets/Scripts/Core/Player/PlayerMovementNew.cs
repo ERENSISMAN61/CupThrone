@@ -65,7 +65,7 @@ public class PlayerMovementNew : NetworkBehaviour
         if (!IsOwner) { return; }
 
         // Check if grounded
-        isGrounded = Physics.Raycast(bodyTransform.position, Vector3.down, 0.9f + 0.2f, groundLayer);
+        isGrounded = Physics.Raycast(bodyTransform.position, Vector3.down, 0.2f, groundLayer);
 
         if (isGrounded)
         {
@@ -77,7 +77,7 @@ public class PlayerMovementNew : NetworkBehaviour
         }
 
         MovePlayer();
-        
+
         // Rotate character based on horizontal input
         if (movementInput.x != 0)
         {
@@ -86,11 +86,11 @@ public class PlayerMovementNew : NetworkBehaviour
         }
 
         SpeedControl();
-        
+
         // Update network variables for animation
         networkSpeed.Value = rb.linearVelocity.magnitude;
         networkDirection.Value = movementInput.x;
-        
+
         // Update animator if present
         if (animator != null)
         {
@@ -104,8 +104,8 @@ public class PlayerMovementNew : NetworkBehaviour
     {
         // Calculate movement direction
         Vector3 movementDirection = bodyTransform.forward * movementInput.y + bodyTransform.right * movementInput.x;
-        
-        if(isGrounded)
+
+        if (isGrounded)
             // Apply stronger force for ground movement with ForceMode.Force for better acceleration
             rb.AddForce(movementDirection.normalized * movementSpeed * 10f, ForceMode.Force);
         else if (!isGrounded)
