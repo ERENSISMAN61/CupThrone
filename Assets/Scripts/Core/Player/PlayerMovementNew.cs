@@ -8,10 +8,16 @@ public class PlayerMovementNew : NetworkBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private Animator animator; // Animator bileşeni
 
-    [SerializeField] private float movementSpeed = 10f;
+    [SerializeField] private float groundDrag; // Zemin kontrolü için transform
+    [SerializeField] private float movementSpeed;
     [SerializeField] private float turnSpeed = 50f;
-    [SerializeField] private float jumpForce = 5f; // Zıplama kuvveti
+    [SerializeField] private float jumpForce; // Zıplama kuvveti
     [SerializeField] private LayerMask groundLayer; // Zemin kontrolü için layer
+
+    [SerializeField] private float jumpCooldown; // Zıplama süresi
+    [SerializeField] private float airMultiplier; // Hava kontrolü için çarpan
+
+    private bool readyToJump = true; // Zıplama hazır mı değil mi
 
     private Vector2 movementInput;
     private bool isGrounded;
@@ -45,58 +51,87 @@ public class PlayerMovementNew : NetworkBehaviour
 
     private void HandleJump()
     {
-        if (isGrounded) // Eğer karakter zemindeyse zıpla
+        if (readyToJump && isGrounded)
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+            Jump(); // Zıplama fonksiyonunu çağır
+            readyToJump = false; // Zıplama hazır değil
+            Invoke(nameof(ResetJump), jumpCooldown); // Zıplama süresini sıfırla
         }
-    }
-
-    private void Update()
-    {
-        if (IsOwner)
-        {
-            // Zemin kontrolü
-            isGrounded = Physics.Raycast(bodyTransform.position, Vector3.down, 1.1f, groundLayer);
-
-            // Ensure the bodyTransform follows the parent object's position
-            bodyTransform.position = rb.position;
-
-            // Rotate the character based on horizontal input
-            float yRotation = movementInput.x * turnSpeed * Time.deltaTime;
-            bodyTransform.Rotate(0, yRotation, 0);
-
-            // Update NetworkVariables for animation parameters
-            float forwardSpeed = movementInput.y; // İleri ve geri hareket
-            float strafeSpeed = movementInput.x;  // Sağa ve sola hareket
-
-            networkSpeed.Value = forwardSpeed;
-            networkDirection.Value = strafeSpeed;
-        }
-
-        // Update the animator parameters for all clients
-        animator.SetFloat("Speed", networkSpeed.Value);  // İleri/geri hareket için
-        animator.SetFloat("Direction", networkDirection.Value); // Sağa/sola hareket için
-        animator.SetBool("IsGrounded", isGrounded); // Zemin durumunu animatöre gönder
     }
 
     private void FixedUpdate()
     {
-        if (IsOwner)
+        // Only process movement for the owner
+        if (!IsOwner) { return; }
+
+        // Check if grounded
+        isGrounded = Physics.Raycast(bodyTransform.position, Vector3.down, 0.9f + 0.2f, groundLayer);
+
+        if (isGrounded)
         {
-            // Create horizontal movement vector
-            Vector3 movement = new Vector3(movementInput.x, 0, movementInput.y) * movementSpeed;
-
-            // Transform to world space based on body orientation
-            Vector3 worldMovement = bodyTransform.TransformDirection(movement);
-
-            // Preserve the Y velocity (gravity effect) and only modify XZ movement
-            Vector3 newVelocity = new Vector3(
-                worldMovement.x,
-                rb.linearVelocity.y, // Keep the current Y velocity for gravity to work properly
-                worldMovement.z
-            );
-
-            rb.linearVelocity = newVelocity;
+            rb.linearDamping = groundDrag;
         }
+        else
+        {
+            rb.linearDamping = 0;
+        }
+
+        MovePlayer();
+        
+        // Rotate character based on horizontal input
+        if (movementInput.x != 0)
+        {
+            float yRotation = movementInput.x * turnSpeed * Time.fixedDeltaTime;
+            bodyTransform.Rotate(0, yRotation, 0);
+        }
+
+        SpeedControl();
+        
+        // Update network variables for animation
+        networkSpeed.Value = rb.linearVelocity.magnitude;
+        networkDirection.Value = movementInput.x;
+        
+        // Update animator if present
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", rb.linearVelocity.magnitude);
+            animator.SetFloat("Direction", movementInput.x);
+            animator.SetBool("IsGrounded", isGrounded);
+        }
+    }
+
+    private void MovePlayer()
+    {
+        // Calculate movement direction
+        Vector3 movementDirection = bodyTransform.forward * movementInput.y + bodyTransform.right * movementInput.x;
+        
+        if(isGrounded)
+            // Apply stronger force for ground movement with ForceMode.Force for better acceleration
+            rb.AddForce(movementDirection.normalized * movementSpeed * 10f, ForceMode.Force);
+        else if (!isGrounded)
+            // Apply gentler force for air control without the excessive multiplier
+            rb.AddForce(movementDirection.normalized * movementSpeed * 10f * airMultiplier, ForceMode.Force);
+    }
+
+    private void SpeedControl()
+    {
+        Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z); // Y eksenindeki hızı sıfırla
+        if (flatVel.magnitude > movementSpeed)
+        {
+            Vector3 limitedVel = flatVel.normalized * movementSpeed;
+            rb.linearVelocity = new Vector3(limitedVel.x, rb.linearVelocity.y, limitedVel.z); // Y eksenindeki hızı koru
+        }
+    }
+
+    private void Jump()
+    {
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z); // Y eksenindeki hızı sıfırla
+
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse); // Zıplama kuvvetini uygula
+    }
+
+    private void ResetJump()
+    {
+        readyToJump = true; // Zıplama hazır
     }
 }

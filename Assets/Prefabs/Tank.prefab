@@ -5905,7 +5905,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 0
+  m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -5919,9 +5919,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &4152453409625686199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6100,12 +6100,15 @@ MonoBehaviour:
   bodyTransform: {fileID: 3873185727811946855}
   rb: {fileID: -6602369715248976738}
   animator: {fileID: 7142846660465775389}
-  movementSpeed: 10
+  groundDrag: 5
+  movementSpeed: 7
   turnSpeed: 50
-  jumpForce: 30
+  jumpForce: 12
   groundLayer:
     serializedVersion: 2
     m_Bits: 512
+  jumpCooldown: 0.25
+  airMultiplier: 0.4
 --- !u!114 &7715923669668559701
 MonoBehaviour:
   m_ObjectHideFlags: 0
