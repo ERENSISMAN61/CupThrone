@@ -13,6 +13,7 @@ public class CoinSpawner : NetworkBehaviour
     [SerializeField] private Vector2 zSpawnRange;
     [SerializeField] private LayerMask terrainLayerMask;
     [SerializeField] private LayerMask nonTerrainLayerMask;
+    [SerializeField] private Transform coinContainer; // Parent transform for coins
 
     private List<Vector3> raycastHitPoints = new List<Vector3>(); // Store hit points for Gizmos
     private Collider[] colliders = new Collider[1];//neden 1 taneyse? çünkü sadece bir tane collider almak istiyoruz. collider varsa orda coin spawn etmeyelim diye.
@@ -56,7 +57,11 @@ public class CoinSpawner : NetworkBehaviour
 
         coinInstance.SetValue(coinValue);
 
-        coinInstance.GetComponent<NetworkObject>().Spawn();
+        if (!coinContainer.GetComponent<NetworkObject>().IsSpawned)
+        { coinInstance.GetComponent<NetworkObject>().Spawn(); }
+
+
+        coinInstance.transform.SetParent(coinContainer); // Set the parent transform for coins
 
         coinInstance.OnCollected += HandleCoinCollected;
     }
@@ -83,8 +88,8 @@ public class CoinSpawner : NetworkBehaviour
 
 
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, terrainLayerMask)) // Check for terrain collision
-            {   
-                
+            {
+
                 Debug.Log($"Raycast hit: {hit.collider.name} at {hit.point}"); // Log hit details
                 spawnPoint.y = hit.point.y + 0.5f; // Set y to terrain height
 
