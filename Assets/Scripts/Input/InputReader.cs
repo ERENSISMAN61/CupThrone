@@ -11,6 +11,8 @@ public class InputReader : ScriptableObject, IPlayerActions
     public event Action<Vector2> MoveEvent;
     // Birincil ateşleme olayını tetikleyen event
     public event Action<bool> PrimaryFireEvent;
+    // Sprint olayını tetikleyen event
+    public event Action<bool> SprintEvent;
 
     public event Action JumpEvent; // Zıplama olayını tetikleyen event
 
@@ -78,6 +80,19 @@ public class InputReader : ScriptableObject, IPlayerActions
         if (context.performed) // Eylem gerçekleştiğinde
         {
             JumpEvent?.Invoke(); // Zıplama olayını tetikle
+        }
+    }
+    
+    // Sprint girişi alındığında çağrılır
+    public void OnSprint(InputAction.CallbackContext context)
+    {
+        if (context.performed) // Eylem gerçekleştiğinde
+        {
+            SprintEvent?.Invoke(true); // Sprint olayını tetikle
+        }
+        else if (context.canceled) // Eylem iptal edildiğinde
+        {
+            SprintEvent?.Invoke(false); // Sprint olayını durdur
         }
     }
 }
