@@ -57,8 +57,7 @@ public class CoinSpawner : NetworkBehaviour
 
         coinInstance.SetValue(coinValue);
 
-        if (!coinContainer.GetComponent<NetworkObject>().IsSpawned)
-        { coinInstance.GetComponent<NetworkObject>().Spawn(); }
+        coinInstance.GetComponent<NetworkObject>().Spawn();
 
 
         coinInstance.transform.SetParent(coinContainer); // Set the parent transform for coins
