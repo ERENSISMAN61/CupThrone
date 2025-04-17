@@ -1,21 +1,21 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class CoinWallet : NetworkBehaviour
+public class FoodWallet : NetworkBehaviour
 {
 
-    public NetworkVariable<int> TotalCoins = new NetworkVariable<int>();
+    public NetworkVariable<int> TotalFoods = new NetworkVariable<int>();
 
     public void SpendCoins(int costToFire)
     {
-        TotalCoins.Value -= costToFire;
+        TotalFoods.Value -= costToFire;
     }
     private void OnTriggerEnter(Collider collider)
     {
 
-        if (!collider.TryGetComponent<Coin>(out Coin coin)) { return; }
+        if (!collider.TryGetComponent<Food>(out Food food)) { return; }
 
-        int coinValue = coin.Collect(); //Coin class'ını coin olarak çalıştırabilmemizin nedeni,
+        int foodValue = food.Collect(); //Coin class'ını coin olarak çalıştırabilmemizin nedeni,
                                         //if bloğunda Coin class'ını coin olarak atamıştık. 
                                         //şu an bu kısım else bloğunda çalıştığı için coin class'ını coin olarak çalıştırabiliyoruz.
 
@@ -27,6 +27,6 @@ public class CoinWallet : NetworkBehaviour
                                    //Collect metoduna bakarsak client para gizlemekle ilgileniyor server para eklemekle.
 
 
-        TotalCoins.Value += coinValue;
+        TotalFoods.Value += foodValue;
     }
 }

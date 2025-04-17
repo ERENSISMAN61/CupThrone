@@ -5924,7 +5924,7 @@ GameObject:
   - component: {fileID: 382538818}
   - component: {fileID: 382538819}
   m_Layer: 0
-  m_Name: CoinContainer
+  m_Name: FoodContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24059,7 +24059,7 @@ GameObject:
   - component: {fileID: 1555266361}
   - component: {fileID: 1555266362}
   m_Layer: 0
-  m_Name: CoinSpawner
+  m_Name: FoodSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24118,9 +24118,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  coinPrefab: {fileID: 1351684894010772690, guid: f0298168b8a609448b8c6426e05d0317, type: 3}
-  maxCoins: 200
-  coinValue: 10
+  foodPrefab: {fileID: 1351684894010772690, guid: f0298168b8a609448b8c6426e05d0317, type: 3}
+  maxFoods: 50
+  foodValue: 10
   xSpawnRange: {x: -150, y: 150}
   zSpawnRange: {x: -150, y: 150}
   terrainLayerMask:
@@ -24129,7 +24129,7 @@ MonoBehaviour:
   nonTerrainLayerMask:
     serializedVersion: 2
     m_Bits: 503
-  coinContainer: {fileID: 382538818}
+  foodContainer: {fileID: 382538818}
 --- !u!1 &1574174156
 GameObject:
   m_ObjectHideFlags: 0

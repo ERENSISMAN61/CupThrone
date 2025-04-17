@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3585310387999816000}
   - component: {fileID: -2336010048256538181}
   m_Layer: 7
-  m_Name: BaseCoin
+  m_Name: BaseFood
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

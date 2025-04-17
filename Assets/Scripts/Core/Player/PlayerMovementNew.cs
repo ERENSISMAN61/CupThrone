@@ -91,7 +91,7 @@ public class PlayerMovementNew : NetworkBehaviour
 
             if (isGrounded)
             {
-                Debug.Log("Player is grounded - applying ground drag");
+//                Debug.Log("Player is grounded - applying ground drag");
                 rb.linearDamping = groundDrag;
             }
             else
