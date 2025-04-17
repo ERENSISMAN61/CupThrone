@@ -6,7 +6,6 @@ using UnityEngine.InputSystem;
 
 public class MeleeCombatController : MonoBehaviour
 {
-    [SerializeField] GameObject objects;
     Animator animator;
     AudioSource audioSource;
 
