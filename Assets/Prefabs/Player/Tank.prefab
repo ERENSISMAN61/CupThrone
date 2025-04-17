@@ -6008,7 +6008,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1584864858
+  GlobalObjectIdHash: 2645561976
   InScenePlacedSourceGlobalObjectIdHash: 1584864858
   DeferredDespawnTick: 0
   Ownership: 1
@@ -6203,6 +6203,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   headModel: {fileID: 126028792110724277}
   faceStuff: {fileID: 7785285597568381770}
+  armModel: {fileID: 4802573778220662122}
 --- !u!114 &8645360125752793543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6215,7 +6216,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f858ae8d432bc46911e4e33d91d7f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objects: {fileID: 0}
   cam: {fileID: 0}
   attackDistance: 3
   attackDelay: 0.4
@@ -6385,6 +6385,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 01a904e63d7a47c4cb736cb4712ff9e9, type: 3}
+--- !u!1 &4802573778220662122 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3934009726062036715, guid: 01a904e63d7a47c4cb736cb4712ff9e9, type: 3}
+  m_PrefabInstance: {fileID: 8376205368491948929}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5327190785169483728 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4455108605631028305, guid: 01a904e63d7a47c4cb736cb4712ff9e9, type: 3}
