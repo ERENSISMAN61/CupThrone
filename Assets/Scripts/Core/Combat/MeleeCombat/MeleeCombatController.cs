@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 public class MeleeCombatController : MonoBehaviour
 {
-
+    [SerializeField] GameObject objects;
     Animator animator;
     AudioSource audioSource;
 
@@ -61,7 +61,7 @@ public class MeleeCombatController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Camera found: " + cam.name);
+            //            Debug.LogWarning("Camera found: " + cam.name);
         }
     }
     void Update()
@@ -81,6 +81,7 @@ public class MeleeCombatController : MonoBehaviour
 
     public const string IDLE = "Idle";
     public const string WALK = "Walk";
+    public const string RUN = "Run";
     public const string ATTACK1 = "Attack 1";
     public const string ATTACK2 = "Attack 2";
 
@@ -101,10 +102,17 @@ public class MeleeCombatController : MonoBehaviour
         // If player is not attacking
         if (!attacking)
         {
-            if (!Input.GetKey(KeyCode.LeftShift))
+            if (!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.W))
             { ChangeAnimationState(IDLE); }
-            else
+            else if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.W))
+            { ChangeAnimationState(RUN); }
+            else if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D))
             { ChangeAnimationState(WALK); }
+            else
+            {
+                ChangeAnimationState(IDLE);
+            }
+
         }
     }
 

@@ -6008,7 +6008,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1584864858
+  GlobalObjectIdHash: 2645561976
   InScenePlacedSourceGlobalObjectIdHash: 1584864858
   DeferredDespawnTick: 0
   Ownership: 1
@@ -6182,7 +6182,6 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 512
-  jumpCooldown: 0.25
   airMultiplier: 0.4
 --- !u!114 &7715923669668559701
 MonoBehaviour:
@@ -6211,6 +6210,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f858ae8d432bc46911e4e33d91d7f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  objects: {fileID: 0}
   cam: {fileID: 0}
   attackDistance: 3
   attackDelay: 0.4
