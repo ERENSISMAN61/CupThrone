@@ -2,9 +2,9 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 
-public class RespawningCoin : Coin //RespawningCoin, Coin class'ından inherit edilmiştir.
+public class RespawningFood : Food //RespawningCoin, Coin class'ından inherit edilmiştir.
 {
-    public event Action<RespawningCoin> OnCollected;
+    public event Action<RespawningFood> OnCollected;
     private Vector3 previousPosition;
 
     private void Update()
@@ -38,7 +38,7 @@ public class RespawningCoin : Coin //RespawningCoin, Coin class'ından inherit e
 
         OnCollected?.Invoke(this);
 
-        return coinValue;
+        return foodValue;
     }
 
     public void Reset()

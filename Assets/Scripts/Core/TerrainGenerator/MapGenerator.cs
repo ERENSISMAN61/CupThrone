@@ -329,7 +329,7 @@ public class MapGenerator : MonoBehaviour
         if (TerrainSeedManager.CurrentSeed > 0)
         {
             directNetworkSeed = TerrainSeedManager.CurrentSeed;
-            Debug.Log($"Direct TerrainSeedManager seed: {directNetworkSeed}");
+//            Debug.Log($"Direct TerrainSeedManager seed: {directNetworkSeed}");
         }
         // NetworkTerrainManager seed değeri kontrolü
         else if (NetworkTerrainManager.TerrainSeedValue > 0)
@@ -343,7 +343,7 @@ public class MapGenerator : MonoBehaviour
         if (noiseData != null && noiseData.seed > 0)
         {
             noiseDataSeed = noiseData.seed;
-            Debug.Log($"NoiseData seed: {noiseDataSeed}");
+//            Debug.Log($"NoiseData seed: {noiseDataSeed}");
         }
 
         // Seed değerini ayarla - öncelik direkt networked değerlerde
@@ -354,7 +354,7 @@ public class MapGenerator : MonoBehaviour
             {
                 currentSeedValue = directNetworkSeed;
                 seedInitialized = true;
-                Debug.Log($"UpdateCurrentSeedFromNetworkManager - Networked seed kullanıldı: {currentSeedValue}");
+//                Debug.Log($"UpdateCurrentSeedFromNetworkManager - Networked seed kullanıldı: {currentSeedValue}");
             }
             // Sonra NoiseData değerini dene
             else if (noiseDataSeed > 0 && !seedInitialized)
@@ -374,7 +374,7 @@ public class MapGenerator : MonoBehaviour
             if (noiseData != null && currentSeedValue > 0)
             {
                 noiseData.seed = currentSeedValue;
-                Debug.Log($"NoiseData seed updated to: {currentSeedValue}");
+//                Debug.Log($"NoiseData seed updated to: {currentSeedValue}");
             }
         }
     }

@@ -5,7 +5,7 @@ using UnityEngine;
 public class ProjectileLauncher : NetworkBehaviour
 {
     [SerializeField] private InputReader inputReader;
-    [SerializeField] private CoinWallet wallet;
+    [SerializeField] private FoodWallet wallet;
     [SerializeField] private Transform projectileSpawnPoint;
     [SerializeField] private GameObject ServerProjectile;
     [SerializeField] private GameObject ClientProjectile;
@@ -68,7 +68,7 @@ public class ProjectileLauncher : NetworkBehaviour
 
         if (timer > 0) { return; }// timer 0'dan büyükse atış yapmasın.
 
-        if (wallet.TotalCoins.Value < costToFire) { return; } //para yoksa atış gerçekleşmesin.
+        if (wallet.TotalFoods.Value < costToFire) { return; } //para yoksa atış gerçekleşmesin.
 
         SpawnServerProjectileServerRpc(projectileSpawnPoint.position, projectileSpawnPoint.forward);
         SpawnDummyProjectile(projectileSpawnPoint.position, projectileSpawnPoint.forward);
@@ -99,7 +99,7 @@ public class ProjectileLauncher : NetworkBehaviour
     [ServerRpc] //istemciden sunucuya çağrı göndermek için kullanılır.
     private void SpawnServerProjectileServerRpc(Vector3 spawnPosition, Vector3 direction) //
     {
-        if (wallet.TotalCoins.Value < costToFire) { return; } //para yoksa atış gerçekleşmesin.
+        if (wallet.TotalFoods.Value < costToFire) { return; } //para yoksa atış gerçekleşmesin.
 
         wallet.SpendCoins(costToFire); //parayı harca. sadece server harcayabilir.
 
@@ -114,7 +114,6 @@ public class ProjectileLauncher : NetworkBehaviour
 
 
         projectileInstance.GetComponent<DealDamageOnContact>().SetOwner(OwnerClientId); // projectile'daki DealDamageOnContact scriptine bu kodun sahibinin id'sini veriyoruz ki bizi vuramasın.
-
 
         if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))//bir nesnenin bir bileşeni var mı yok mu kontrol eder. Varsa bileşeni döndürür, yoksa null döndürür.
         {
