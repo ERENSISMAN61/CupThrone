@@ -17,8 +17,7 @@ public class TankPlayer : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // Position player on terrain
-        PositionOnTerrain();
+        StartCoroutine(WaitForTerrainAndPosition());
 
         // Camera priority only for owner
         if (IsOwner)
@@ -34,32 +33,28 @@ public class TankPlayer : NetworkBehaviour
 
     private void PositionOnTerrain()
     {
-        Vector3 currentPosition = transform.position;
-        
-        // Start raycast from high above the current XZ position
-        Vector3 rayStart = new Vector3(currentPosition.x, 100f, currentPosition.z);
-        Ray ray = new Ray(rayStart, Vector3.down);
-        RaycastHit hit;
+        if (Physics.Raycast(transform.position + Vector3.up * 100f, Vector3.down, out RaycastHit hit, Mathf.Infinity, terrainLayerMask))
+        {
+            // Set the player's position above the terrain
+            transform.position = new Vector3(transform.position.x, hit.point.y + heightOffset, transform.position.z);
+        }
+    }
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, terrainLayerMask))
+    private IEnumerator WaitForTerrainAndPosition()
+    {
+        // Wait until the terrain is spawned
+        while (!IsTerrainSpawned())
         {
-            // Log every raycast hit
-            Debug.Log($"Player raycast hit: {hit.collider.name} at position {hit.point} with distance {hit.distance}");
-            
-            // Position player slightly above the terrain surface
-            Vector3 newPosition = hit.point;
-            newPosition.y += heightOffset;
-            transform.position = newPosition;
-            
-            // Optional: Align rotation with terrain normal
-            // transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
+            yield return null;
         }
-        else
-        {
-            if (showDebugInfo)
-            {
-                Debug.LogWarning("Could not find terrain below player. Using default position.");
-            }
-        }
+
+        // Position player on terrain
+        PositionOnTerrain();
+    }
+
+    private bool IsTerrainSpawned()
+    {
+        // Replace this with the actual logic to check if the terrain is spawned
+        return Physics.Raycast(Vector3.zero + Vector3.up * 100f, Vector3.down, Mathf.Infinity, terrainLayerMask);
     }
 }
