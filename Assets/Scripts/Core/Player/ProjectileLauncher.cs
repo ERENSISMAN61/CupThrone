@@ -5,7 +5,7 @@ using UnityEngine;
 public class ProjectileLauncher : NetworkBehaviour
 {
     [SerializeField] private InputReader inputReader;
-    [SerializeField] private FoodWallet wallet;
+    [SerializeField] private ArrowWallet wallet;
     [SerializeField] private Transform projectileSpawnPoint;
     [SerializeField] private GameObject ServerProjectile;
     [SerializeField] private GameObject ClientProjectile;
@@ -19,10 +19,19 @@ public class ProjectileLauncher : NetworkBehaviour
     [SerializeField] private float muzzleFlashDuration;
     [SerializeField] private int costToFire;
 
-
-    private bool shouldFire;
+    // Eski shouldFire değişkenini kaldırdık
     private float timer;
     private float muzzleFlashTimer;
+
+    [Header("Charging Settings")]
+    [SerializeField] private float chargeSpeed = 5f; // Default 5 units per second
+    [SerializeField] private float maxChargeValue = 10f;
+    [SerializeField] private float minChargeToFire = 0.5f;// değiştirilip silinebilir belki.
+
+    [SerializeField] private float chargeValue = 0f;
+    private bool isCharging = false;
+
+    [SerializeField] private HandItems handItems; // Okun tutulduğu el nesnesi
 
     public override void OnNetworkSpawn()
     {
@@ -38,15 +47,65 @@ public class ProjectileLauncher : NetworkBehaviour
         inputReader.PrimaryFireEvent -= HandleFire;
     }
 
-    private void HandleFire(bool shouldFire)
+    private void HandleFire(bool isPressed)
     {
-        this.shouldFire = shouldFire;
+        Debug.Log($"HandleFire: isPressed={isPressed}");
 
+        if (!handItems.GetHasBowInHand()) return;// yay elinde değilse işlem yapma
+
+
+        if (isPressed)
+        {
+            StartCharging();
+        }
+        else
+        {
+            StopCharging();
+        }
+    }
+
+    private void StartCharging()
+    {
+        Debug.Log("StartCharging: Başladı");
+        isCharging = true;
+    }
+
+    private void StopCharging()
+    {
+        // Şarj etmiyorsak işlem yapma
+        if (!isCharging) return;
+
+        isCharging = false;
+        Debug.Log($"StopCharging: Şarj değeri = {chargeValue}");
+
+        // Minimum şarj kontrolü
+        if (chargeValue >= minChargeToFire && timer <= 0)
+        {
+            if (wallet.TotalArrows.Value >= costToFire)
+            {
+                Debug.Log($"Ok atılıyor! Şarj: {chargeValue}");
+                SpawnServerProjectileServerRpc(projectileSpawnPoint.position, projectileSpawnPoint.forward);
+                SpawnDummyProjectile(projectileSpawnPoint.position, projectileSpawnPoint.forward);
+                timer = 1 / fireRate;
+            }
+            else
+            {
+                Debug.Log("Yeterli ok yok!");
+            }
+        }
+        else
+        {
+            Debug.Log($"Atış başarısız. Şarj: {chargeValue}, Timer: {timer}");
+        }
+
+        // Şarj değerini sıfırla
+        chargeValue = 0f;
     }
 
     private void Update()
     {
-        if (muzzleFlashTimer > 0)  //Counter for muzzle flash light
+        // Muzzle flash işlemi
+        if (muzzleFlashTimer > 0)
         {
             muzzleFlashTimer -= Time.deltaTime;
 
@@ -54,79 +113,72 @@ public class ProjectileLauncher : NetworkBehaviour
             {
                 muzzleFlashPrefab.SetActive(false);
             }
-
         }
 
         if (!IsOwner) { return; }
 
+        // Timer işleme
         if (timer > 0)
         {
             timer -= Time.deltaTime;
         }
 
-        if (!shouldFire) { return; }
+        // Şarj mekanizması - doğru yerde çalışması için buraya taşındı
+        if (isCharging)
+        {
+            chargeValue += chargeSpeed * Time.deltaTime;
+            chargeValue = Mathf.Clamp(chargeValue, 0f, maxChargeValue);
 
-        if (timer > 0) { return; }// timer 0'dan büyükse atış yapmasın.
-
-        if (wallet.TotalFoods.Value < costToFire) { return; } //para yoksa atış gerçekleşmesin.
-
-        SpawnServerProjectileServerRpc(projectileSpawnPoint.position, projectileSpawnPoint.forward);
-        SpawnDummyProjectile(projectileSpawnPoint.position, projectileSpawnPoint.forward);
-
-        timer = 1 / fireRate;//fire rate'i saniyeye çevirir. 1 saniyede kaç mermi atılacağını belirler.
-        //timer 0 olduğunda spawn metodları çalıştırılıyor ve tekrar timera bir değer atanıyor. Bu sayede atışlar belirli aralıklarla yapılıyor.
+            if (chargeValue % 1f < 0.01f)
+            {
+                Debug.Log($"Şarj ediliyor: {Mathf.Floor(chargeValue)}/{maxChargeValue}");
+            }
+        }
     }
 
-    private void SpawnDummyProjectile(Vector3 spawnPosition, Vector3 direction) //Sahte mermi oluşturur. Kullanıcı attığı merminin anlık tepkisini görmesi için. mermiyi alacak kullanıcı da dummy oluşturur.
+    private void SpawnDummyProjectile(Vector3 spawnPosition, Vector3 direction)
     {
-        muzzleFlashPrefab.SetActive(true);       // muzzle flash light
+        muzzleFlashPrefab.SetActive(true);
         muzzleFlashTimer = muzzleFlashDuration;
 
         GameObject projectileInstance = Instantiate(ClientProjectile, spawnPosition, Quaternion.identity);
-
         projectileInstance.transform.forward = direction;
-
-
         Physics.IgnoreCollision(playerCollider, projectileInstance.GetComponent<Collider>());
 
         if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
-            rb.linearVelocity = rb.transform.forward * projectileSpeed;
+            // Şarj değerine göre hız ayarla (1.5x - 3x arası)
+            float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
+            rb.linearVelocity = rb.transform.forward * (projectileSpeed * speedMultiplier);
         }
-
     }
 
-    [ServerRpc] //istemciden sunucuya çağrı göndermek için kullanılır.
-    private void SpawnServerProjectileServerRpc(Vector3 spawnPosition, Vector3 direction) //
+    [ServerRpc]
+    private void SpawnServerProjectileServerRpc(Vector3 spawnPosition, Vector3 direction)
     {
-        if (wallet.TotalFoods.Value < costToFire) { return; } //para yoksa atış gerçekleşmesin.
+        if (wallet.TotalArrows.Value < costToFire) { return; }
 
-        wallet.SpendCoins(costToFire); //parayı harca. sadece server harcayabilir.
+        wallet.SpendCoins(costToFire);
 
-
-        GameObject projectileInstance = Instantiate(ServerProjectile, spawnPosition, Quaternion.identity); //   Quaternion.identity = 0,0,0,1
-
-        projectileInstance.transform.forward = direction; // merminin spawnlandığında bakacağı yön
-
+        GameObject projectileInstance = Instantiate(ServerProjectile, spawnPosition, Quaternion.identity);
+        projectileInstance.transform.forward = direction;
         SpawnServerProjectileClientRpc(spawnPosition, direction);
+        Physics.IgnoreCollision(playerCollider, projectileInstance.GetComponent<Collider>());
+        projectileInstance.GetComponent<DealDamageOnContact>().SetOwner(OwnerClientId);
 
-        Physics.IgnoreCollision(playerCollider, projectileInstance.GetComponent<Collider>()); // projectile kedi player colliderına çarpmasın diye
-
-
-        projectileInstance.GetComponent<DealDamageOnContact>().SetOwner(OwnerClientId); // projectile'daki DealDamageOnContact scriptine bu kodun sahibinin id'sini veriyoruz ki bizi vuramasın.
-
-        if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))//bir nesnenin bir bileşeni var mı yok mu kontrol eder. Varsa bileşeni döndürür, yoksa null döndürür.
+        if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
-            rb.linearVelocity = rb.transform.forward * projectileSpeed;
+            // Şarj değerine göre hız ayarla (1.5x - 3x arası)
+            float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
+            rb.linearVelocity = rb.transform.forward * (projectileSpeed * speedMultiplier);
         }
     }
 
-    [ClientRpc] //sunucudan istemciye çağrı göndermek için kullanılır.
+    [ClientRpc]
     private void SpawnServerProjectileClientRpc(Vector3 spawnPosition, Vector3 direction)
     {
         if (IsOwner) { return; }
 
         SpawnDummyProjectile(spawnPosition, direction);
-
     }
 }

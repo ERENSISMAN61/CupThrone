@@ -60,6 +60,14 @@ PrefabInstance:
       propertyPath: m_IsTrigger
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7372370187920988670, guid: 8e10d572352c4fd408691a1241c42a3a, type: 3}
+      propertyPath: m_UseGravity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7372370187920988670, guid: 8e10d572352c4fd408691a1241c42a3a, type: 3}
+      propertyPath: m_Constraints
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 968464311515200488, guid: 8e10d572352c4fd408691a1241c42a3a, type: 3}
     m_RemovedGameObjects: []
@@ -86,3 +94,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f92e02f7cb224b40926b12d207a47c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  damage: 10

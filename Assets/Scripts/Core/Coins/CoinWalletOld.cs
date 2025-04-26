@@ -6,9 +6,9 @@
 
 //     public NetworkVariable<int> TotalCoins = new NetworkVariable<int>();
 
-//     public void SpendCoins(int costToFire)
+//     public void SpendCoins(int cost)
 //     {
-//         TotalCoins.Value -= costToFire;
+//         TotalCoins.Value -= cost;
 //     }
 //     private void OnTriggerEnter(Collider collider)
 //     {
