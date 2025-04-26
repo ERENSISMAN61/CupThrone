@@ -10,6 +10,9 @@ public class ProjectileLauncher : NetworkBehaviour
     [SerializeField] private GameObject ServerProjectile;
     [SerializeField] private GameObject ClientProjectile;
 
+    [Header("Camera Settings")]
+    [SerializeField] private Camera playerCamera; // Oyuncu kamerası referansı
+
     [SerializeField] private float projectileSpeed;
 
     [SerializeField] private Collider playerCollider;
@@ -32,6 +35,15 @@ public class ProjectileLauncher : NetworkBehaviour
     private bool isCharging = false;
 
     [SerializeField] private HandItems handItems; // Okun tutulduğu el nesnesi
+
+    private void Awake()
+    {
+        // Eğer kamera atanmadıysa, ana kamerayı bulmaya çalış
+        if (playerCamera == null)
+        {
+            playerCamera = Camera.main;
+        }
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -78,14 +90,17 @@ public class ProjectileLauncher : NetworkBehaviour
         isCharging = false;
         Debug.Log($"StopCharging: Şarj değeri = {chargeValue}");
 
+        // Kameranın baktığı yönü al
+        Vector3 cameraDirection = playerCamera != null ? playerCamera.transform.forward : projectileSpawnPoint.forward;
+
         // Minimum şarj kontrolü
         if (chargeValue >= minChargeToFire && timer <= 0)
         {
             if (wallet.TotalArrows.Value >= costToFire)
             {
-                Debug.Log($"Ok atılıyor! Şarj: {chargeValue}");
-                SpawnServerProjectileServerRpc(projectileSpawnPoint.position, projectileSpawnPoint.forward);
-                SpawnDummyProjectile(projectileSpawnPoint.position, projectileSpawnPoint.forward);
+                Debug.Log($"Ok atılıyor! Şarj: {chargeValue}, Yön: {cameraDirection}");
+                SpawnServerProjectileServerRpc(projectileSpawnPoint.position, cameraDirection);
+                SpawnDummyProjectile(projectileSpawnPoint.position, cameraDirection);
                 timer = 1 / fireRate;
             }
             else
@@ -126,6 +141,16 @@ public class ProjectileLauncher : NetworkBehaviour
         // Şarj mekanizması - doğru yerde çalışması için buraya taşındı
         if (isCharging)
         {
+            // Kamerayı kontrol et
+            if (playerCamera == null)
+            {
+                playerCamera = Camera.main;
+                if (playerCamera == null)
+                {
+                    Debug.LogWarning("Kamera bulunamadı!");
+                }
+            }
+
             chargeValue += chargeSpeed * Time.deltaTime;
             chargeValue = Mathf.Clamp(chargeValue, 0f, maxChargeValue);
 
