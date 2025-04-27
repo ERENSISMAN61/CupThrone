@@ -14,7 +14,8 @@ GameObject:
   - component: {fileID: 8682622020879398172}
   - component: {fileID: 5746448948014708264}
   - component: {fileID: -7175118124079149914}
-  m_Layer: 0
+  - component: {fileID: 7064517540801041647}
+  m_Layer: 10
   m_Name: Tree1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -109,10 +110,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.328143
-  m_Height: 3.1689844
+  m_Radius: 0.3
+  m_Height: 3
   m_Direction: 1
-  m_Center: {x: -0.017126411, y: 1.5844922, z: 0.0061415434}
+  m_Center: {x: 0, y: 1.2, z: -0.003873539}
 --- !u!114 &5746448948014708264
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 640125821
+  GlobalObjectIdHash: 343630778
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -174,3 +175,16 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 0
   SlerpPosition: 0
+--- !u!114 &7064517540801041647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5142532879768883847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 851611fe3f5a6c045843fbaadec5e632, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100

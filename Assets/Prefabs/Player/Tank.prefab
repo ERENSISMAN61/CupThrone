@@ -6179,6 +6179,7 @@ MonoBehaviour:
   projectileSpawnPoint: {fileID: 3391935145697236053}
   ServerProjectile: {fileID: 2695346089816314289, guid: 847ca96369c7b744ca51bd07c6faebd3, type: 3}
   ClientProjectile: {fileID: 4878818465940114047, guid: f2275a10f7d24b14aa62462855483126, type: 3}
+  playerCamera: {fileID: 0}
   projectileSpeed: 10
   playerCollider: {fileID: 1426466293428092879}
   muzzleFlashPrefab: {fileID: 6235711505242384503}
@@ -6302,11 +6303,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   virtualCamera: {fileID: 4912459493377182153}
   ownerPriority: 15
-  terrainLayerMask:
-    serializedVersion: 2
-    m_Bits: 512
   heightOffset: 1
-  showDebugInfo: 0
+  rb: {fileID: -6602369715248976738}
 --- !u!114 &6628382038663934385
 MonoBehaviour:
   m_ObjectHideFlags: 0

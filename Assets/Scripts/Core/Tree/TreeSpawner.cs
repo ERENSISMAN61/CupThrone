@@ -67,6 +67,7 @@ public class TreeSpawner : NetworkBehaviour
 
     }
 
+
     private Vector3 GetSpawnPoint()
     {
         float x = 0f;

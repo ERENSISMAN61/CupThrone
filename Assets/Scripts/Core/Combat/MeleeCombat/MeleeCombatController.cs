@@ -8,20 +8,13 @@ public class MeleeCombatController : MonoBehaviour
 {
     Animator animator;
     AudioSource audioSource;
-
-
-
     Vector3 _PlayerVelocity;
-
-
 
     [Header("Camera")]
     public Camera cam;
 
-
     void Awake()
     {
-
 
         animator = GetComponentInChildren<Animator>();
         audioSource = GetComponent<AudioSource>();
@@ -66,8 +59,10 @@ public class MeleeCombatController : MonoBehaviour
     void Update()
     {
         // Repeat Inputs
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        { Attack(); }
+        if (Input.GetKey(KeyCode.Mouse0))
+        {
+            Attack();
+        }
 
         SetAnimations();
     }
@@ -123,6 +118,7 @@ public class MeleeCombatController : MonoBehaviour
     public float attackDistance = 3f;
     public float attackDelay = 0.4f;
     public float attackSpeed = 1f;
+    public float attackRange = 5f;
     public LayerMask attackLayer;
 
     public GameObject hitEffect;
@@ -155,6 +151,16 @@ public class MeleeCombatController : MonoBehaviour
         {
             ChangeAnimationState(ATTACK2);
             attackCount = 0;
+        }
+
+        Ray ray = new Ray(cam.transform.position, cam.transform.forward);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, attackRange))
+        {
+            if (hit.collider.TryGetComponent(out IInteractable interactable))
+            {
+                interactable.Interact();
+            }
         }
     }
 

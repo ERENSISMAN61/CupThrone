@@ -8,6 +8,9 @@ public class CinemachineFPSController : MonoBehaviour
     public float lookSensitivity = 1.0f;
     public float maxVerticalAngle = 80f; // Maximum look up/down angle
 
+    [Header("UI Settings")]
+    public CrosshairController crosshairController; // CrosshairController referansı
+
     // Internal variables
     private float currentYaw = 0f;
     private float currentPitch = 0f;
@@ -44,6 +47,12 @@ public class CinemachineFPSController : MonoBehaviour
         // Lock cursor for FPS controls
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // Crosshair'ı oyuncunun kamerasına bağla
+        if (crosshairController != null && virtualCamera != null)
+        {
+            crosshairController.AssignCamera(virtualCamera.GetComponent<Camera>());
+        }
     }
 
     private void Update()
