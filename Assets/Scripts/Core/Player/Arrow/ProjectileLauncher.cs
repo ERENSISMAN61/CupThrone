@@ -17,7 +17,7 @@ public class ProjectileLauncher : NetworkBehaviour
 
     [SerializeField] private Collider playerCollider;
 
-    [SerializeField] private GameObject muzzleFlashPrefab;
+    //[SerializeField] private GameObject muzzleFlashPrefab;
     [SerializeField] private float fireRate;
     [SerializeField] private float muzzleFlashDuration;
     [SerializeField] private int costToFire;
@@ -126,7 +126,7 @@ public class ProjectileLauncher : NetworkBehaviour
 
             if (muzzleFlashTimer <= 0)
             {
-                muzzleFlashPrefab.SetActive(false);
+                //muzzleFlashPrefab.SetActive(false);
             }
         }
 
@@ -163,18 +163,25 @@ public class ProjectileLauncher : NetworkBehaviour
 
     private void SpawnDummyProjectile(Vector3 spawnPosition, Vector3 direction)
     {
-        muzzleFlashPrefab.SetActive(true);
+        //muzzleFlashPrefab.SetActive(true);
         muzzleFlashTimer = muzzleFlashDuration;
 
-        GameObject projectileInstance = Instantiate(ClientProjectile, spawnPosition, Quaternion.identity);
-        projectileInstance.transform.forward = direction;
+        // Yön vektörüne dayalı bir rotasyon hesaplıyoruz
+        Quaternion rotation = Quaternion.LookRotation(direction);
+
+        // Rotation parametresi olarak hesapladığımız rotasyonu kullanıyoruz
+        GameObject projectileInstance = Instantiate(ClientProjectile, spawnPosition, rotation);
+
+        // Yönü tekrar ayarlamaya gerek yok, rotasyon ile birlikte forward zaten ayarlanacak
+        // projectileInstance.transform.forward = direction;
+
         Physics.IgnoreCollision(playerCollider, projectileInstance.GetComponent<Collider>());
 
         if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
             // Şarj değerine göre hız ayarla (1.5x - 3x arası)
             float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
-            rb.linearVelocity = rb.transform.forward * (projectileSpeed * speedMultiplier);
+            rb.linearVelocity = direction * (projectileSpeed * speedMultiplier);
         }
     }
 
@@ -185,8 +192,15 @@ public class ProjectileLauncher : NetworkBehaviour
 
         wallet.SpendCoins(costToFire);
 
-        GameObject projectileInstance = Instantiate(ServerProjectile, spawnPosition, Quaternion.identity);
-        projectileInstance.transform.forward = direction;
+        // Yön vektörüne dayalı bir rotasyon hesaplıyoruz
+        Quaternion rotation = Quaternion.LookRotation(direction);
+
+        // Rotation parametresi olarak hesapladığımız rotasyonu kullanıyoruz
+        GameObject projectileInstance = Instantiate(ServerProjectile, spawnPosition, rotation);
+
+        // Yönü tekrar ayarlamaya gerek yok
+        // projectileInstance.transform.forward = direction;
+
         SpawnServerProjectileClientRpc(spawnPosition, direction);
         Physics.IgnoreCollision(playerCollider, projectileInstance.GetComponent<Collider>());
         projectileInstance.GetComponent<DealDamageOnContact>().SetOwner(OwnerClientId);
@@ -195,7 +209,7 @@ public class ProjectileLauncher : NetworkBehaviour
         {
             // Şarj değerine göre hız ayarla (1.5x - 3x arası)
             float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
-            rb.linearVelocity = rb.transform.forward * (projectileSpeed * speedMultiplier);
+            rb.linearVelocity = direction * (projectileSpeed * speedMultiplier);
         }
     }
 
