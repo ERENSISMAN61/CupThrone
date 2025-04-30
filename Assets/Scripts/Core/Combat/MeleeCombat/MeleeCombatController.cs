@@ -58,7 +58,8 @@ public class MeleeCombatController : MonoBehaviour
     }
     void Update()
     {
-        // Repeat Inputs
+
+        // Only trigger attack once per click, not continuously
         if (Input.GetKey(KeyCode.Mouse0))
         {
             Attack();
@@ -138,6 +139,8 @@ public class MeleeCombatController : MonoBehaviour
 
         Invoke(nameof(ResetAttack), attackSpeed);
         Invoke(nameof(AttackRaycast), attackDelay);
+        // Delay the interactable attack to match animation timing
+        Invoke(nameof(AttackInteractable), attackDelay);
 
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.PlayOneShot(swordSwing);
@@ -153,6 +156,12 @@ public class MeleeCombatController : MonoBehaviour
             attackCount = 0;
         }
 
+        // Remove the immediate call to AttackInteractable
+        // AttackInteractable();
+    }
+
+    void AttackInteractable()
+    {
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, attackRange))
@@ -163,7 +172,6 @@ public class MeleeCombatController : MonoBehaviour
             }
         }
     }
-
     void ResetAttack()
     {
         attacking = false;
