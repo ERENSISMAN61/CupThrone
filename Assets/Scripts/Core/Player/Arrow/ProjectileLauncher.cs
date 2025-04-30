@@ -13,8 +13,8 @@ public class ProjectileLauncher : NetworkBehaviour
     [Header("Camera Settings")]
     [SerializeField] private Camera playerCamera; // Oyuncu kamerası referansı
 
-    private float projectileSpeed;
-    private float speedMultiplier;
+    private float projectileSpeed = 20f;
+    private float speedMultiplier = 1f;
     [SerializeField] private Collider playerCollider;
 
     //[SerializeField] private GameObject muzzleFlashPrefab;
