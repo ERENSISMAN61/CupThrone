@@ -13,8 +13,8 @@ public class ProjectileLauncher : NetworkBehaviour
     [Header("Camera Settings")]
     [SerializeField] private Camera playerCamera; // Oyuncu kamerası referansı
 
-    [SerializeField] private float projectileSpeed;
-
+    [SerializeField] NetworkVariable<float> projectileSpeed;
+    [SerializeField] NetworkVariable<float> speedMultiplier;
     [SerializeField] private Collider playerCollider;
 
     //[SerializeField] private GameObject muzzleFlashPrefab;
@@ -108,7 +108,7 @@ public class ProjectileLauncher : NetworkBehaviour
             Debug.Log("Yay resetleniyor, şarj başlatılamaz!");
             return;
         }
-        
+
         Debug.Log("StartCharging: Başladı");
         isCharging = true;
     }
@@ -250,8 +250,8 @@ public class ProjectileLauncher : NetworkBehaviour
         if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
             // Şarj değerine göre hız ayarla (1.5x - 3x arası)
-            float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
-            rb.linearVelocity = direction * (projectileSpeed * speedMultiplier);
+            speedMultiplier.Value = 1f + (chargeValue / maxChargeValue * 2f);
+            rb.linearVelocity = direction * (projectileSpeed.Value * speedMultiplier.Value);
         }
     }
 
@@ -279,7 +279,7 @@ public class ProjectileLauncher : NetworkBehaviour
         {
             // Şarj değerine göre hız ayarla (1.5x - 3x arası)
             float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
-            rb.linearVelocity = direction * (projectileSpeed * speedMultiplier);
+            rb.linearVelocity = direction * (projectileSpeed.Value * speedMultiplier);
         }
     }
 

@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 7372370187920988670}
   - component: {fileID: 6650850505342599691}
   - component: {fileID: -7206914715226069798}
-  - component: {fileID: 7930087970870620588}
   m_Layer: 6
   m_Name: ShellBase
   m_TagString: Untagged
@@ -146,20 +145,3 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &7930087970870620588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5760710221977473557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkRigidbodyBaseExpanded: 0
-  UseRigidBodyForMotion: 1
-  AutoUpdateKinematicState: 0
-  AutoSetKinematicOnDespawn: 1

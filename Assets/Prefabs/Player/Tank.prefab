@@ -5958,9 +5958,11 @@ MonoBehaviour:
   ServerProjectile: {fileID: 2695346089816314289, guid: 847ca96369c7b744ca51bd07c6faebd3, type: 3}
   ClientProjectile: {fileID: 4878818465940114047, guid: f2275a10f7d24b14aa62462855483126, type: 3}
   playerCamera: {fileID: 0}
-  projectileSpeed: 20
+  projectileSpeed:
+    m_InternalValue: 20
+  speedMultiplier:
+    m_InternalValue: 1
   playerCollider: {fileID: 1426466293428092879}
-  fireRate: 1.3
   muzzleFlashDuration: 0.3
   costToFire: 1
   chargeSpeed: 80
@@ -5970,6 +5972,7 @@ MonoBehaviour:
   handItems: {fileID: 22131603248550476}
   bowTransform: {fileID: 2180797321844678961}
   maxBowScaleY: 2
+  bowResetDuration: 0.3
 --- !u!114 &7706163155993097290
 MonoBehaviour:
   m_ObjectHideFlags: 0
