@@ -13,8 +13,8 @@ public class ProjectileLauncher : NetworkBehaviour
     [Header("Camera Settings")]
     [SerializeField] private Camera playerCamera; // Oyuncu kamerası referansı
 
-    [SerializeField] NetworkVariable<float> projectileSpeed;
-    [SerializeField] NetworkVariable<float> speedMultiplier;
+    private float projectileSpeed;
+    private float speedMultiplier;
     [SerializeField] private Collider playerCollider;
 
     //[SerializeField] private GameObject muzzleFlashPrefab;
@@ -46,6 +46,9 @@ public class ProjectileLauncher : NetworkBehaviour
 
     // Yeni değişken: Sıfırlama sırasında buton basılı tutuluyorsa takip eder
     private bool isFireButtonHeldDuringReset = false;
+
+    // speedMultiplier değerini saklamak için
+    private float localSpeedMultiplier = 1.0f;
 
     private void Awake()
     {
@@ -129,9 +132,16 @@ public class ProjectileLauncher : NetworkBehaviour
         {
             if (wallet.TotalArrows.Value >= costToFire)
             {
-                Debug.Log($"Ok atılıyor! Şarj: {chargeValue}, Yön: {cameraDirection}");
-                SpawnServerProjectileServerRpc(projectileSpawnPoint.position, cameraDirection);
-                SpawnDummyProjectile(projectileSpawnPoint.position, cameraDirection);
+                // Şarj değerine göre hız ayarla (1.5x - 3x arası)
+                localSpeedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
+
+                Debug.Log($"Ok atılıyor! Şarj: {chargeValue}, Yön: {cameraDirection}, SpeedMultiplier: {localSpeedMultiplier}");
+
+                // ServerRpc'ye hem pozisyon, yön hem de speedMultiplier gönder
+                SpawnServerProjectileServerRpc(projectileSpawnPoint.position, cameraDirection, localSpeedMultiplier);
+
+                // Client tarafında da aynı değeri kullan
+                SpawnDummyProjectile(projectileSpawnPoint.position, cameraDirection, localSpeedMultiplier);
 
                 // Yeni ok atışından sonra, yay resetlenene kadar ateş etmeyi devre dışı bırak
                 canFire = false;
@@ -231,7 +241,7 @@ public class ProjectileLauncher : NetworkBehaviour
         }
     }
 
-    private void SpawnDummyProjectile(Vector3 spawnPosition, Vector3 direction)
+    private void SpawnDummyProjectile(Vector3 spawnPosition, Vector3 direction, float speedMultiplier)
     {
         //muzzleFlashPrefab.SetActive(true);
         muzzleFlashTimer = muzzleFlashDuration;
@@ -249,14 +259,13 @@ public class ProjectileLauncher : NetworkBehaviour
 
         if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
-            // Şarj değerine göre hız ayarla (1.5x - 3x arası)
-            speedMultiplier.Value = 1f + (chargeValue / maxChargeValue * 2f);
-            rb.linearVelocity = direction * (projectileSpeed.Value * speedMultiplier.Value);
+            // Parametre olarak gelen speedMultiplier değerini kullan
+            rb.linearVelocity = direction * (projectileSpeed * speedMultiplier);
         }
     }
 
     [ServerRpc]
-    private void SpawnServerProjectileServerRpc(Vector3 spawnPosition, Vector3 direction)
+    private void SpawnServerProjectileServerRpc(Vector3 spawnPosition, Vector3 direction, float speedMultiplier)
     {
         if (wallet.TotalArrows.Value < costToFire) { return; }
 
@@ -271,24 +280,26 @@ public class ProjectileLauncher : NetworkBehaviour
         // Yönü tekrar ayarlamaya gerek yok
         // projectileInstance.transform.forward = direction;
 
-        SpawnServerProjectileClientRpc(spawnPosition, direction);
+        // Tüm clientlara speedMultiplier'ı da gönder
+        SpawnServerProjectileClientRpc(spawnPosition, direction, speedMultiplier);
+
         Physics.IgnoreCollision(playerCollider, projectileInstance.GetComponent<Collider>());
         projectileInstance.GetComponent<DealDamageOnContact>().SetOwner(OwnerClientId);
 
         if (projectileInstance.TryGetComponent<Rigidbody>(out Rigidbody rb))
         {
-            // Şarj değerine göre hız ayarla (1.5x - 3x arası)
-            float speedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
-            rb.linearVelocity = direction * (projectileSpeed.Value * speedMultiplier);
+            // ServerRpc'den gelen speedMultiplier değerini kullan
+            rb.linearVelocity = direction * (projectileSpeed * speedMultiplier);
         }
     }
 
     [ClientRpc]
-    private void SpawnServerProjectileClientRpc(Vector3 spawnPosition, Vector3 direction)
+    private void SpawnServerProjectileClientRpc(Vector3 spawnPosition, Vector3 direction, float speedMultiplier)
     {
         if (IsOwner) { return; }
 
-        SpawnDummyProjectile(spawnPosition, direction);
+        // SpeedMultiplier değerini de ClientRpc üzerinden gönder
+        SpawnDummyProjectile(spawnPosition, direction, speedMultiplier);
     }
 
     // Yayın ölçeğini güncelleyen metod
