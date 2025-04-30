@@ -68,6 +68,10 @@ PrefabInstance:
       propertyPath: m_Constraints
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7930087970870620588, guid: 8e10d572352c4fd408691a1241c42a3a, type: 3}
+      propertyPath: UseRigidBodyForMotion
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 968464311515200488, guid: 8e10d572352c4fd408691a1241c42a3a, type: 3}
     m_RemovedGameObjects: []
