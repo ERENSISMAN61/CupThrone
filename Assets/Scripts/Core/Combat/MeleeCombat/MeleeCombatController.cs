@@ -119,7 +119,7 @@ public class MeleeCombatController : MonoBehaviour
     public float attackDistance = 3f;
     public float attackDelay = 0.4f;
     public float attackSpeed = 1f;
-    public float attackRange = 5f;
+    //public float attackRange = 5f;
     public LayerMask attackLayer;
 
     public GameObject hitEffect;
@@ -160,28 +160,47 @@ public class MeleeCombatController : MonoBehaviour
         // AttackInteractable();
     }
 
+
+    // ETKİLEŞİME GEÇİLEBİLEN OBJELERE HASAR VERMEK İÇİN YAZILAN ATTACK,
+    // INTERACT() ETKİLEŞİME GEÇİLECEK OLAN OBJE VE O OBJENİN HEALTH SCRIPTİNİN 
+    // İÇİNDEKİ INTERACT FONKSİYONUNDA VERİLEN HASAR DEĞERİ AYARLANIYOR (ÖR. TREEHEALTH.CS'YE BAK)
+    // ÖR. AĞACA HASAR VERİLECEĞİ ZAMAN AĞAÇ PREFABINDE HEALTH SCRIPTI, ONUN DA İÇİNDE INTERACT FONKSİYONU YAZILIYOR
     void AttackInteractable()
     {
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, attackRange))
+        if (Physics.Raycast(ray, out hit, attackDistance, attackLayer))
         {
+            // Skip if we hit ourselves
+            if (hit.collider.transform.IsChildOf(transform) || hit.collider.transform == transform)
+            {
+                return;
+            }
+            
             if (hit.collider.TryGetComponent(out IInteractable interactable))
             {
                 interactable.Interact();
             }
         }
     }
+    
     void ResetAttack()
     {
         attacking = false;
         readyToAttack = true;
     }
 
+    // NORMAL ATTACK, VURMA EFEKTİ VE DECAL OLUŞTURAN
     void AttackRaycast()
     {
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, attackDistance, attackLayer))
         {
+            // Skip if we hit ourselves
+            if (hit.collider.transform.IsChildOf(transform) || hit.collider.transform == transform)
+            {
+                return;
+            }
+
             HitTarget(hit.point);
         }
     }
