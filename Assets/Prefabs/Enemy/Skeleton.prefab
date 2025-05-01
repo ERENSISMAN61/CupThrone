@@ -1341,9 +1341,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.21
-  m_Height: 1.8014984
+  m_Height: 1.7377979
   m_Direction: 1
-  m_Center: {x: 0, y: 0.8829534, z: 0}
+  m_Center: {x: 0, y: 0.9148037, z: 0}
 --- !u!195 &6951214362560788910
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1379,7 +1379,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  meshRenderer: {fileID: 0}
   renderers:
   - {fileID: 7501016802040982819}
   - {fileID: 6492547162209128131}
@@ -1389,6 +1388,11 @@ MonoBehaviour:
   moveSpeed: 3
   detectionRadius: 10
   enemyModel: {fileID: 4140440268307553066}
+  enablePatrol: 1
+  patrolRadius: 20
+  minPatrolWaitTime: 2
+  maxPatrolWaitTime: 5
+  patrolPointDistance: 1
 --- !u!1 &3343561760992133880
 GameObject:
   m_ObjectHideFlags: 0

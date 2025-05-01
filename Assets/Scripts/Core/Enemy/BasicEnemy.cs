@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -10,10 +11,31 @@ public class BasicEnemy : Enemy
     [SerializeField] private float detectionRadius = 10.0f; // Düşmanın oyuncuyu algılama yarıçapı
     [SerializeField] private Transform enemyModel; // Düşmanın 3D modeli
 
+    [Header("Patrol Ayarları")]
+    [SerializeField] private bool enablePatrol = true; // Devriye davranışını etkinleştir/devre dışı bırak
+    [SerializeField] private float patrolRadius = 20f; // Devriye gezme yarıçapı
+    [SerializeField] private float minPatrolWaitTime = 2f; // Devriye noktaları arasında minimum bekleme süresi
+    [SerializeField] private float maxPatrolWaitTime = 5f; // Devriye noktaları arasında maksimum bekleme süresi
+    [SerializeField] private float patrolPointDistance = 1f; // Devriye noktasına ne kadar yaklaşılınca "ulaşılmış" sayılır
+
+    [Header("Animasyon Kontrolleri")]
+    [SerializeField] private Animator animator; // Animator bileşeni
+
     private NavMeshAgent navMeshAgent; // Düşmanın hareket bileşeni
     private Transform targetPlayer; // Hedef oyuncu transformu
     private bool navMeshInitialized = false; // NavMesh başlatıldı mı
     private Coroutine initNavMeshCoroutine;
+    private Coroutine patrolCoroutine;
+    private Vector3 spawnPosition; // Düşmanın başlangıç pozisyonu
+    private Vector3 currentPatrolTarget; // Şu anki devriye hedefi
+    private bool isWaitingAtPatrolPoint = false; // Devriye noktasında bekliyor mu
+    private bool isPatrolling = false; // Devriye geziyor mu
+
+    // Animator parametreleri
+    private readonly int isIdleParam = Animator.StringToHash("isIdle");
+    private readonly int isWalkingParam = Animator.StringToHash("isWalking");
+    private readonly int isGettingHitParam = Animator.StringToHash("isGettingHit");
+    private readonly int isPunchingParam = Animator.StringToHash("isPunching");
 
     public event Action<BasicEnemy> OnEnemyDefeated; // Düşman yenildiğinde tetiklenen olay
 
@@ -25,6 +47,22 @@ public class BasicEnemy : Enemy
             // NavMesh hazır olana kadar devre dışı bırak
             navMeshAgent.enabled = false;
         }
+
+        // Animator referansını otomatik olarak almayı dene
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+            if (animator == null && enemyModel != null)
+            {
+                animator = enemyModel.GetComponent<Animator>();
+            }
+        }
+
+        // Spawn pozisyonunu kaydet
+        spawnPosition = transform.position;
+
+        // Başlangıçta Idle animasyonu ayarla
+        SetIdleAnimation();
     }
 
     private void OnEnable()
@@ -119,6 +157,12 @@ public class BasicEnemy : Enemy
                 navMeshAgent.speed = moveSpeed;
                 navMeshInitialized = true;
                 Debug.Log($"BasicEnemy: NavMeshAgent başarıyla başlatıldı ({gameObject.name})");
+
+                // NavMeshAgent başarıyla başlatıldıktan sonra devriye davranışını başlat
+                if (enablePatrol && patrolCoroutine == null)
+                {
+                    patrolCoroutine = StartCoroutine(PatrolBehavior());
+                }
             }
             catch (Exception e)
             {
@@ -131,15 +175,32 @@ public class BasicEnemy : Enemy
     private void Update()
     {
         if (!IsServer) return;
+        if (isDead) return;
 
-        if (targetPlayer != null && !isDead)
+        if (targetPlayer != null)
         {
+            // Oyuncu algılandığında devriye davranışını durdur
+            if (patrolCoroutine != null && isPatrolling)
+            {
+                isPatrolling = false;
+                isWaitingAtPatrolPoint = false;
+            }
+
             // NavMeshAgent başarıyla başlatıldıysa kullan
             if (navMeshAgent != null && navMeshAgent.enabled && navMeshInitialized)
             {
                 try
                 {
                     navMeshAgent.SetDestination(targetPlayer.position);
+                    // Hareket ediyorsa yürüme animasyonunu ayarla
+                    if (navMeshAgent.velocity.sqrMagnitude > 0.1f)
+                    {
+                        SetWalkingAnimation();
+                    }
+                    else
+                    {
+                        SetIdleAnimation();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -154,6 +215,81 @@ public class BasicEnemy : Enemy
                 MoveWithoutNavMesh();
             }
         }
+        else if (enablePatrol && navMeshInitialized && navMeshAgent != null && navMeshAgent.enabled)
+        {
+            // Oyuncu yoksa ve devriye davranışı etkinse
+            if (patrolCoroutine == null)
+            {
+                patrolCoroutine = StartCoroutine(PatrolBehavior());
+            }
+
+            // Navmeshagent hareket ediyorsa yürüme, duruyorsa idle animasyonu ayarla
+            if (navMeshAgent.velocity.sqrMagnitude > 0.1f)
+            {
+                SetWalkingAnimation();
+            }
+            else
+            {
+                SetIdleAnimation();
+            }
+        }
+        else
+        {
+            // Hiçbir hareket yoksa idle animasyonunu ayarla
+            SetIdleAnimation();
+        }
+    }
+
+    // Animasyon kontrollerini basitleştirmek için yardımcı metodlar
+    private void SetIdleAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(isIdleParam, true);
+            animator.SetBool(isWalkingParam, false);
+            animator.SetBool(isPunchingParam, false);
+        }
+    }
+
+    private void SetWalkingAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(isIdleParam, false);
+            animator.SetBool(isWalkingParam, true);
+            animator.SetBool(isPunchingParam, false);
+        }
+    }
+
+    private void SetPunchAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(isIdleParam, false);
+            animator.SetBool(isWalkingParam, false);
+            animator.SetBool(isPunchingParam, true);
+        }
+    }
+
+    private void SetHitAnimation()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(isGettingHitParam, true);
+
+            // Hit animasyonu genellikle kısa süreli olduğu için bir coroutine ile reset edelim
+            StartCoroutine(ResetHitAnimation());
+        }
+    }
+
+    private IEnumerator ResetHitAnimation()
+    {
+        yield return new WaitForSeconds(0.5f); // Hit animasyon süresine göre ayarlayın
+
+        if (animator != null)
+        {
+            animator.SetBool(isGettingHitParam, false);
+        }
     }
 
     private void MoveWithoutNavMesh()
@@ -164,6 +300,9 @@ public class BasicEnemy : Enemy
         Vector3 direction = (targetPlayer.position - transform.position).normalized;
         direction.y = 0; // Y ekseninde hareket etmesini engelle
         transform.position += direction * moveSpeed * Time.deltaTime;
+
+        // Hareket ediyor, yürüme animasyonunu ayarla
+        SetWalkingAnimation();
 
         // Hedefe doğru dön
         if (enemyModel != null)
@@ -194,6 +333,80 @@ public class BasicEnemy : Enemy
         targetPlayer = closestPlayer;
     }
 
+    // Yeni eklenen devriye davranışı
+    private IEnumerator PatrolBehavior()
+    {
+        isPatrolling = true;
+
+        while (isPatrolling && navMeshAgent != null && navMeshAgent.enabled && !isDead)
+        {
+            // Eğer hedef oyuncu yoksa devriye gez
+            if (targetPlayer == null)
+            {
+                // Henüz bir devriye noktasına gitmiyorsa veya hedefine ulaştıysa
+                if (!navMeshAgent.hasPath || navMeshAgent.remainingDistance <= patrolPointDistance)
+                {
+                    if (!isWaitingAtPatrolPoint)
+                    {
+                        // Bir noktada bekle
+                        isWaitingAtPatrolPoint = true;
+                        float waitTime = UnityEngine.Random.Range(minPatrolWaitTime, maxPatrolWaitTime);
+
+                        // Beklerken idle animasyonu
+                        SetIdleAnimation();
+
+                        yield return new WaitForSeconds(waitTime);
+                        isWaitingAtPatrolPoint = false;
+                    }
+
+                    // Yeni bir devriye noktası belirle
+                    Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * patrolRadius;
+                    randomDirection.y = 0;
+                    Vector3 randomPoint = spawnPosition + randomDirection;
+
+                    // NavMesh üzerinde erişilebilir bir nokta bul
+                    NavMeshHit hit;
+                    if (NavMesh.SamplePosition(randomPoint, out hit, patrolRadius, NavMesh.AllAreas))
+                    {
+                        currentPatrolTarget = hit.position;
+                        navMeshAgent.SetDestination(currentPatrolTarget);
+                        Debug.Log($"Yeni devriye noktası belirlendi: {currentPatrolTarget}");
+
+                        // Hareket başlıyor, yürüme animasyonu
+                        SetWalkingAnimation();
+                    }
+                }
+            }
+            else
+            {
+                // Oyuncu algılandığında devriyeyi durdur
+                isPatrolling = false;
+                yield break;
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    public bool TakeDamage(int damageAmount)
+    {
+        if (isDead) return false;
+
+        health -= damageAmount;
+
+        // Hasar aldığında hit animasyonunu oynat
+        SetHitAnimation();
+
+        if (health <= 0)
+        {
+            isDead = true;
+            OnDefeated();
+            return true;
+        }
+
+        return false;
+    }
+
     public override void OnDefeated()
     {
         // Düşman yenildi
@@ -201,6 +414,14 @@ public class BasicEnemy : Enemy
 
         // Spawner'a haber vermek için olayı tetikle
         OnEnemyDefeated?.Invoke(this);
+
+        // Devriye davranışını durdur
+        isPatrolling = false;
+        if (patrolCoroutine != null)
+        {
+            StopCoroutine(patrolCoroutine);
+            patrolCoroutine = null;
+        }
 
         // Hareket ve görselliği devre dışı bırak
         if (navMeshAgent != null && navMeshAgent.enabled)
@@ -220,15 +441,25 @@ public class BasicEnemy : Enemy
 
         // Pozisyonu sıfırla
         transform.position = newPosition;
+        spawnPosition = newPosition; // Yeni spawn pozisyonunu kaydet
 
         // Görselleri ve hareketi aktifleştir
         SetVisible(true);
+
+        // Animasyon durumunu sıfırla
+        SetIdleAnimation();
 
         // NavMeshAgent'ı başlatma
         if (navMeshAgent != null && !navMeshAgent.enabled && navMeshInitialized)
         {
             navMeshAgent.enabled = true;
             navMeshAgent.isStopped = false;
+
+            // Devriye davranışını yeniden başlat
+            if (enablePatrol && patrolCoroutine == null)
+            {
+                patrolCoroutine = StartCoroutine(PatrolBehavior());
+            }
         }
         else if (!navMeshInitialized)
         {
