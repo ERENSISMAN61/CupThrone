@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class DynamicNavMeshBuilder : MonoBehaviour
+// NetworkBehaviour'dan türeterek ağ desteği ekleyelim
+public class DynamicNavMeshBuilder : NetworkBehaviour
 {
     // NavMeshSurface bileşeni - Editor'da atayabilirsiniz
     [SerializeField] private MonoBehaviour navMeshSurface;
@@ -23,6 +25,8 @@ public class DynamicNavMeshBuilder : MonoBehaviour
     public delegate void NavMeshEvent();
     public static event NavMeshEvent OnNavMeshReady;
 
+    private Coroutine forceTimeoutCoroutine;
+
     private void Awake()
     {
         _instance = this;
@@ -35,8 +39,15 @@ public class DynamicNavMeshBuilder : MonoBehaviour
         }
     }
 
-    private void OnEnable()
+    public override void OnNetworkSpawn()
     {
+        // Sadece sunucu navmesh oluştursun
+        if (!IsServer)
+        {
+            Debug.Log("DynamicNavMeshBuilder: Client olduğu için NavMesh oluşturulmayacak.");
+            return;
+        }
+
         // MapGenerator ve TreeSpawner eventlerine abone ol
         MapGenerator.OnTerrainGenerationComplete += OnTerrainGenerated;
         TreeSpawner.OnTreeGenerationComplete += OnTreesGenerated;
@@ -44,19 +55,22 @@ public class DynamicNavMeshBuilder : MonoBehaviour
         // Eğer eventler bu script enable edilmeden önce tetiklendiyse
         // statik değişkenleri manuel olarak kontrol et
         CheckIfGeneratorsAlreadyCompleted();
+
+        // Maksimum bekleme süresi sonunda tüm oluşturucular tamamlanmazsa zorla başlat
+        forceTimeoutCoroutine = StartCoroutine(ForceBuildAfterTimeout());
     }
 
-    private void OnDisable()
+    public override void OnNetworkDespawn()
     {
         // Abonelikleri temizle
         MapGenerator.OnTerrainGenerationComplete -= OnTerrainGenerated;
         TreeSpawner.OnTreeGenerationComplete -= OnTreesGenerated;
-    }
 
-    private void Start()
-    {
-        // Maksimum bekleme süresi sonunda tüm oluşturucular tamamlanmazsa zorla başlat
-        StartCoroutine(ForceBuildAfterTimeout());
+        if (forceTimeoutCoroutine != null)
+        {
+            StopCoroutine(forceTimeoutCoroutine);
+            forceTimeoutCoroutine = null;
+        }
     }
 
     private IEnumerator ForceBuildAfterTimeout()
@@ -73,6 +87,8 @@ public class DynamicNavMeshBuilder : MonoBehaviour
     // Terrain oluşturma tamamlandığında çağrılır
     private void OnTerrainGenerated()
     {
+        if (!IsServer) return; // Sadece server için
+
         Debug.Log("DynamicNavMeshBuilder: Terrain oluşturma tamamlandı!");
         isTerrainReady = true;
         BuildNavMeshIfReady();
@@ -81,6 +97,8 @@ public class DynamicNavMeshBuilder : MonoBehaviour
     // Ağaçlar oluşturulduğunda çağrılır
     private void OnTreesGenerated()
     {
+        if (!IsServer) return; // Sadece server için
+
         Debug.Log("DynamicNavMeshBuilder: Ağaç oluşturma tamamlandı!");
         isTreesReady = true;
         BuildNavMeshIfReady();
@@ -112,6 +130,8 @@ public class DynamicNavMeshBuilder : MonoBehaviour
     // Terrain ve ağaçlar hazırsa NavMesh'i oluştur
     private void BuildNavMeshIfReady(bool force = false)
     {
+        if (!IsServer) return; // Sadece server için
+
         if ((isTerrainReady && isTreesReady) || force)
         {
             if (!isNavMeshReady) // Sadece bir kez oluştur
@@ -122,8 +142,34 @@ public class DynamicNavMeshBuilder : MonoBehaviour
 
                 // NavMesh hazır event'ini tetikle
                 OnNavMeshReady?.Invoke();
+
+                // NavMesh hazır olma durumunu networkte senkronize et
+                NotifyNavMeshReadyServerRpc();
             }
         }
+    }
+
+    // Server'dan client'lere NavMesh hazır olduğunu bildir
+    [ServerRpc]
+    private void NotifyNavMeshReadyServerRpc()
+    {
+        // Tüm client'lere NavMesh'in hazır olduğunu bildir
+        NotifyNavMeshReadyClientRpc();
+    }
+
+    // Client'leri NavMesh'in hazır olduğuna dair bilgilendir
+    [ClientRpc]
+    private void NotifyNavMeshReadyClientRpc()
+    {
+        // Server bu RPC'yi de alacak, tekrar işlemesini önle
+        if (IsServer) return;
+
+        // Client'te NavMesh durumunu güncelle
+        Debug.Log("DynamicNavMeshBuilder: Server'dan NavMesh hazır bildirimi alındı");
+        isNavMeshReady = true;
+
+        // Client'te de event'i tetikle
+        OnNavMeshReady?.Invoke();
     }
 
     public void BuildNavMesh()

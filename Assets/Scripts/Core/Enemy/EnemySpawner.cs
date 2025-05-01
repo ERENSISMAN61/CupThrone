@@ -40,7 +40,18 @@ public class EnemySpawner : NetworkBehaviour
     // NavMesh hazır olduğunda çağrılan event handler
     private void OnNavMeshReady()
     {
-        Debug.Log("EnemySpawner: NavMesh hazır olduğu bildirildi, düşmanlar oluşturulmaya başlanıyor...");
+        // Client'lere NavMesh hazır durumu RPC ile bildirilecek
+        // Bu event hem server hem client'te tetiklenebilir
+
+        if (!IsServer)
+        {
+            // Client ise sadece hazır durumunu güncelle, düşman spawn etme
+            Debug.Log("EnemySpawner (Client): NavMesh hazır bildirimi alındı, ancak client düşman oluşturmaz");
+            isNavMeshReady = true;
+            return;
+        }
+
+        Debug.Log("EnemySpawner (Server): NavMesh hazır olduğu bildirildi, düşmanlar oluşturulmaya başlanıyor...");
         isNavMeshReady = true;
 
         // Eğer NetworkBehaviour olarak çoktan spawn olduysa, düşmanları başlat
@@ -52,7 +63,12 @@ public class EnemySpawner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (!IsServer) return; //Sadece sunucu tarafında çalışır
+        // Host/Server değilse, düşman oluşturmayı atla
+        if (!IsServer)
+        {
+            Debug.Log("EnemySpawner: Client olduğu için düşmanlar oluşturulmayacak.");
+            return;
+        }
 
         // NavMesh hazırsa düşmanları başlat, değilse OnNavMeshReady event'ini bekle
         if (isNavMeshReady)

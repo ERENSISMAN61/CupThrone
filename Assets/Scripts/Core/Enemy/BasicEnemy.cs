@@ -87,6 +87,9 @@ public class BasicEnemy : Enemy
     // NavMesh hazır olduğunda çağrılır
     private void OnNavMeshReady()
     {
+        // Client'ler de bu event'i alacak ancak NavMesh oluşturmayacak
+        // Sadece isNavMeshReady durumunu güncelleyecek
+
         // NavMesh hazır olduğu bildirildiğinde NavMeshAgent'ı başlat
         if (navMeshAgent != null && !navMeshAgent.enabled)
         {
@@ -98,8 +101,6 @@ public class BasicEnemy : Enemy
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
-        if (!IsServer) return;
 
         // NavMesh ve NavMeshAgent'ı başlat
         if (initNavMeshCoroutine != null)
@@ -117,7 +118,10 @@ public class BasicEnemy : Enemy
         }
 
         // Sadece sunucu tarafında mantık başlat
-        InvokeRepeating(nameof(FindNearestPlayer), 1.0f, 1.0f);
+        if (IsServer)
+        {
+            InvokeRepeating(nameof(FindNearestPlayer), 1.0f, 1.0f);
+        }
     }
 
     private IEnumerator WaitForNavMeshAndInitialize()
@@ -174,6 +178,8 @@ public class BasicEnemy : Enemy
 
     private void Update()
     {
+        // Server olmayan client'lerde hareket kontrollerini yapma
+        // Client'lerde düşmanlar server tarafından kontrol ediliyor
         if (!IsServer) return;
         if (isDead) return;
 
