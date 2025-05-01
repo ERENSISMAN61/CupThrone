@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode; // Change to Unity Netcode namespace
 
-public class MeleeCombatController : MonoBehaviour
+// Change to use Unity's Netcode NetworkBehaviour
+public class MeleeCombatController : NetworkBehaviour
 {
     Animator animator;
     AudioSource audioSource;
-    Vector3 _PlayerVelocity;
 
     [Header("Camera")]
     public Camera cam;
 
     void Awake()
     {
-
         animator = GetComponentInChildren<Animator>();
         audioSource = GetComponent<AudioSource>();
 
@@ -53,7 +53,7 @@ public class MeleeCombatController : MonoBehaviour
         }
         else
         {
-            //            Debug.LogWarning("Camera found: " + cam.name);
+            // Debug.LogWarning("Camera found: " + cam.name);
         }
     }
     void Update()
@@ -67,8 +67,6 @@ public class MeleeCombatController : MonoBehaviour
 
         SetAnimations();
     }
-
-
 
     // ---------- //
     // ANIMATIONS //
@@ -119,9 +117,8 @@ public class MeleeCombatController : MonoBehaviour
     public float attackDistance = 3f;
     public float attackDelay = 0.4f;
     public float attackSpeed = 1f;
-    //public float attackRange = 5f;
+    public int meleeDamage = 25; // Add damage amount for melee attacks
     public LayerMask attackLayer;
-
     public GameObject hitEffect;
     public AudioClip swordSwing;
     public AudioClip hitSound;
@@ -130,6 +127,8 @@ public class MeleeCombatController : MonoBehaviour
     bool readyToAttack = true;
     int attackCount;
 
+    //[SerializeField] private Collider playerCollider;
+
     public void Attack()
     {
         if (!readyToAttack || attacking) return;
@@ -137,9 +136,9 @@ public class MeleeCombatController : MonoBehaviour
         readyToAttack = false;
         attacking = true;
 
-        Invoke(nameof(ResetAttack), attackSpeed);
-        Invoke(nameof(AttackRaycast), attackDelay);
         // Delay the interactable attack to match animation timing
+        Invoke(nameof(ResetAttack), attackSpeed);
+
         Invoke(nameof(AttackInteractable), attackDelay);
 
         audioSource.pitch = Random.Range(0.9f, 1.1f);
@@ -155,9 +154,6 @@ public class MeleeCombatController : MonoBehaviour
             ChangeAnimationState(ATTACK2);
             attackCount = 0;
         }
-
-        // Remove the immediate call to AttackInteractable
-        // AttackInteractable();
     }
 
 
@@ -176,33 +172,55 @@ public class MeleeCombatController : MonoBehaviour
             {
                 return;
             }
-            
+
+            // Check if we hit another player with a Health component
+            Health targetHealth = hit.collider.GetComponentInParent<Health>();
+            if (targetHealth != null && targetHealth.NetworkObject != null)
+            {
+                // Make sure we're not hitting ourselves
+                if (targetHealth.NetworkObject.OwnerClientId != OwnerClientId)
+                {
+                    // Call the ServerRpc to apply damage
+                    DealDamageServerRpc(targetHealth.NetworkObject.NetworkObjectId, meleeDamage);
+                    
+                    // Show hit effect
+                    HitTarget(hit.point);
+                    return; // Exit after handling player damage
+                }
+            }
+
+            // Handle other interactable objects
             if (hit.collider.TryGetComponent(out IInteractable interactable))
             {
                 interactable.Interact();
+                HitTarget(hit.point);
+            }
+
+        }
+    }
+
+    [ServerRpc]
+    private void DealDamageServerRpc(ulong targetNetworkId, int damageAmount)
+    {
+        // Find the target NetworkObject by its ID
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkId, out NetworkObject targetObject))
+        {
+            // Get the Health component from the target
+            if (targetObject.TryGetComponent<Health>(out Health targetHealth))
+            {
+                // Apply damage to the target
+                targetHealth.TakeDamage(damageAmount);
+                
+                // Log the damage (optional)
+                Debug.Log($"Player {OwnerClientId} dealt {damageAmount} damage to player {targetObject.OwnerClientId}");
             }
         }
     }
-    
+
     void ResetAttack()
     {
         attacking = false;
         readyToAttack = true;
-    }
-
-    // NORMAL ATTACK, VURMA EFEKTİ VE DECAL OLUŞTURAN
-    void AttackRaycast()
-    {
-        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, attackDistance, attackLayer))
-        {
-            // Skip if we hit ourselves
-            if (hit.collider.transform.IsChildOf(transform) || hit.collider.transform == transform)
-            {
-                return;
-            }
-
-            HitTarget(hit.point);
-        }
     }
 
     void HitTarget(Vector3 pos)
