@@ -199,7 +199,7 @@ public class MeleeCombatController : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     private void DealDamageServerRpc(ulong targetNetworkId, int damageAmount)
     {
         // Find the target NetworkObject by its ID
