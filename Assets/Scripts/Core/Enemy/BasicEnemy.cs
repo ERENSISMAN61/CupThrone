@@ -20,6 +20,7 @@ public class BasicEnemy : Enemy
 
     [Header("Animasyon Kontrolleri")]
     [SerializeField] private Animator animator; // Animator bileşeni
+    [SerializeField] private float movementThreshold = 0.2f; // Hareket algılama eşiği
 
     private NavMeshAgent navMeshAgent; // Düşmanın hareket bileşeni
     private Transform targetPlayer; // Hedef oyuncu transformu
@@ -198,8 +199,10 @@ public class BasicEnemy : Enemy
                 try
                 {
                     navMeshAgent.SetDestination(targetPlayer.position);
-                    // Hareket ediyorsa yürüme animasyonunu ayarla
-                    if (navMeshAgent.velocity.sqrMagnitude > 0.1f)
+
+                    // Gerçek ilerleme hızını kontrol et - hareket hızına göre animasyon belirle
+                    float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
+                    if (actualSpeed > movementThreshold)
                     {
                         SetWalkingAnimation();
                     }
@@ -229,8 +232,9 @@ public class BasicEnemy : Enemy
                 patrolCoroutine = StartCoroutine(PatrolBehavior());
             }
 
-            // Navmeshagent hareket ediyorsa yürüme, duruyorsa idle animasyonu ayarla
-            if (navMeshAgent.velocity.sqrMagnitude > 0.1f)
+            // Gerçek ilerleme hızını kontrol et - yalnızca X ve Z düzleminde hareket ölçümü
+            float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
+            if (actualSpeed > movementThreshold)
             {
                 SetWalkingAnimation();
             }
@@ -382,6 +386,13 @@ public class BasicEnemy : Enemy
                         SetWalkingAnimation();
                     }
                 }
+
+                // Gerçek hareket hızını sürekli kontrol et
+                float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
+                if (actualSpeed <= movementThreshold && !isWaitingAtPatrolPoint)
+                {
+                    SetIdleAnimation();
+                }
             }
             else
             {
@@ -390,7 +401,7 @@ public class BasicEnemy : Enemy
                 yield break;
             }
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.1f);
         }
     }
 

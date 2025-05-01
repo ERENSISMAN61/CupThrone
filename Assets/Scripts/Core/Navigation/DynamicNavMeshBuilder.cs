@@ -4,12 +4,13 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
-// NetworkBehaviour'dan türeterek ağ desteği ekleyelim
-public class DynamicNavMeshBuilder : NetworkBehaviour
+// MonoBehaviour kullanarak daha basit bir yapı
+public class DynamicNavMeshBuilder : MonoBehaviour
 {
     // NavMeshSurface bileşeni - Editor'da atayabilirsiniz
     [SerializeField] private MonoBehaviour navMeshSurface;
     [SerializeField] private float maxWaitTime = 60f; // Maksimum bekleme süresi (saniye)
+    [SerializeField] private bool forceRebuildOnStart = true; // Başlangıçta NavMesh'i zorla yeniden oluştur
 
     private static DynamicNavMeshBuilder _instance;
     public static DynamicNavMeshBuilder Instance => _instance;
@@ -30,6 +31,7 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
     private void Awake()
     {
         _instance = this;
+        Debug.Log("DynamicNavMeshBuilder: Awake çağrıldı");
 
         // NavMeshSurface yoksa, uyarı ver
         if (navMeshSurface == null)
@@ -39,14 +41,20 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
         }
     }
 
-    public override void OnNetworkSpawn()
+    private void Start()
     {
-        // Sadece sunucu navmesh oluştursun
-        if (!IsServer)
+        Debug.Log("DynamicNavMeshBuilder: Start çağrıldı");
+
+        if (forceRebuildOnStart)
         {
-            Debug.Log("DynamicNavMeshBuilder: Client olduğu için NavMesh oluşturulmayacak.");
-            return;
+            // Başlangıçta NavMesh'i zorla yeniden oluştur
+            StartCoroutine(ForceRebuildAfterDelay(2f));
         }
+    }
+
+    private void OnEnable()
+    {
+        Debug.Log("DynamicNavMeshBuilder: OnEnable çağrıldı, event'lere abone olunuyor");
 
         // MapGenerator ve TreeSpawner eventlerine abone ol
         MapGenerator.OnTerrainGenerationComplete += OnTerrainGenerated;
@@ -60,7 +68,7 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
         forceTimeoutCoroutine = StartCoroutine(ForceBuildAfterTimeout());
     }
 
-    public override void OnNetworkDespawn()
+    private void OnDisable()
     {
         // Abonelikleri temizle
         MapGenerator.OnTerrainGenerationComplete -= OnTerrainGenerated;
@@ -73,8 +81,23 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
         }
     }
 
+    private IEnumerator ForceRebuildAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        Debug.Log("DynamicNavMeshBuilder: ForceRebuildAfterDelay ile NavMesh zorla yeniden oluşturuluyor");
+
+        // NavMesh'i zorla yeniden oluştur
+        BuildNavMesh();
+        isNavMeshReady = true;
+
+        // NavMesh hazır event'ini tetikle
+        OnNavMeshReady?.Invoke();
+    }
+
     private IEnumerator ForceBuildAfterTimeout()
     {
+        Debug.Log($"DynamicNavMeshBuilder: {maxWaitTime} saniyelik bekleme başlatıldı");
         yield return new WaitForSeconds(maxWaitTime);
 
         if (!isNavMeshReady)
@@ -87,9 +110,7 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
     // Terrain oluşturma tamamlandığında çağrılır
     private void OnTerrainGenerated()
     {
-        if (!IsServer) return; // Sadece server için
-
-        Debug.Log("DynamicNavMeshBuilder: Terrain oluşturma tamamlandı!");
+        Debug.Log("DynamicNavMeshBuilder: Terrain oluşturma tamamlandı bildirimi alındı!");
         isTerrainReady = true;
         BuildNavMeshIfReady();
     }
@@ -97,9 +118,7 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
     // Ağaçlar oluşturulduğunda çağrılır
     private void OnTreesGenerated()
     {
-        if (!IsServer) return; // Sadece server için
-
-        Debug.Log("DynamicNavMeshBuilder: Ağaç oluşturma tamamlandı!");
+        Debug.Log("DynamicNavMeshBuilder: Ağaç oluşturma tamamlandı bildirimi alındı!");
         isTreesReady = true;
         BuildNavMeshIfReady();
     }
@@ -107,6 +126,8 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
     // Eventleri kaçırdıysak, doğrudan statik değişkenleri kontrol et
     private void CheckIfGeneratorsAlreadyCompleted()
     {
+        Debug.Log("DynamicNavMeshBuilder: Generator durumları kontrol ediliyor");
+
         // MapGenerator'ın IsGenerationComplete özelliğini kontrol et
         MapGenerator mapGenerator = FindObjectOfType<MapGenerator>();
         if (mapGenerator != null && mapGenerator.IsGenerationComplete)
@@ -130,7 +151,7 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
     // Terrain ve ağaçlar hazırsa NavMesh'i oluştur
     private void BuildNavMeshIfReady(bool force = false)
     {
-        if (!IsServer) return; // Sadece server için
+        Debug.Log($"DynamicNavMeshBuilder: BuildNavMeshIfReady çağrıldı - isTerrainReady: {isTerrainReady}, isTreesReady: {isTreesReady}, force: {force}");
 
         if ((isTerrainReady && isTreesReady) || force)
         {
@@ -143,49 +164,36 @@ public class DynamicNavMeshBuilder : NetworkBehaviour
                 // NavMesh hazır event'ini tetikle
                 OnNavMeshReady?.Invoke();
 
-                // NavMesh hazır olma durumunu networkte senkronize et
-                NotifyNavMeshReadyServerRpc();
+                // Süreç tamamlandı, bu mesajı logla
+                Debug.Log("DynamicNavMeshBuilder: NavMesh başarıyla oluşturuldu ve hazır.");
             }
         }
     }
 
-    // Server'dan client'lere NavMesh hazır olduğunu bildir
-    [ServerRpc]
-    private void NotifyNavMeshReadyServerRpc()
-    {
-        // Tüm client'lere NavMesh'in hazır olduğunu bildir
-        NotifyNavMeshReadyClientRpc();
-    }
-
-    // Client'leri NavMesh'in hazır olduğuna dair bilgilendir
-    [ClientRpc]
-    private void NotifyNavMeshReadyClientRpc()
-    {
-        // Server bu RPC'yi de alacak, tekrar işlemesini önle
-        if (IsServer) return;
-
-        // Client'te NavMesh durumunu güncelle
-        Debug.Log("DynamicNavMeshBuilder: Server'dan NavMesh hazır bildirimi alındı");
-        isNavMeshReady = true;
-
-        // Client'te de event'i tetikle
-        OnNavMeshReady?.Invoke();
-    }
-
     public void BuildNavMesh()
     {
+        Debug.Log("DynamicNavMeshBuilder: BuildNavMesh çağrıldı");
+
         if (navMeshSurface != null)
         {
-            // NavMeshSurface bileşeninin BuildNavMesh() metodunu reflection ile çağır
-            System.Reflection.MethodInfo buildMethod = navMeshSurface.GetType().GetMethod("BuildNavMesh");
-            if (buildMethod != null)
+            try
             {
-                buildMethod.Invoke(navMeshSurface, null);
-                Debug.Log("NavMesh başarıyla oluşturuldu!");
+                // NavMeshSurface bileşeninin BuildNavMesh() metodunu reflection ile çağır
+                System.Reflection.MethodInfo buildMethod = navMeshSurface.GetType().GetMethod("BuildNavMesh");
+                if (buildMethod != null)
+                {
+                    buildMethod.Invoke(navMeshSurface, null);
+                    Debug.Log("NavMesh başarıyla oluşturuldu!");
+                }
+                else
+                {
+                    Debug.LogError("NavMeshSurface.BuildNavMesh metodu bulunamadı!");
+                    FallbackNavMeshBuild();
+                }
             }
-            else
+            catch (System.Exception e)
             {
-                Debug.LogError("NavMeshSurface.BuildNavMesh metodu bulunamadı!");
+                Debug.LogError($"NavMesh oluşturulurken hata: {e.Message}");
                 FallbackNavMeshBuild();
             }
         }
