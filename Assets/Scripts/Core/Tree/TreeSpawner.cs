@@ -2,9 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using System;
 
 public class TreeSpawner : NetworkBehaviour
 {
+    // Ağaç oluşturma tamamlandığında tetiklenecek event
+    public static event Action OnTreeGenerationComplete;
+
+    // Ağaçlar oluşturuldu mu?
+    private bool isGenerationComplete = false;
+    public bool IsGenerationComplete => isGenerationComplete;
+
     [SerializeField] private GameObject treePrefab; // Tree prefab to spawn
     [SerializeField] private int maxTrees = 100; // Maximum number of trees to spawn
     [SerializeField] private LayerMask terrainLayerMask; // Layer mask for terrain
@@ -28,14 +36,19 @@ public class TreeSpawner : NetworkBehaviour
 
     private IEnumerator DelayedSpawnTrees()
     {
-        yield return new WaitForSeconds(1f); // Wait for 2 seconds
-        
+        yield return new WaitForSeconds(1f); // Wait for 1 second
+
         treeRadius = treePrefab.GetComponent<CapsuleCollider>().radius; // Get the radius of the tree collider
 
         for (int i = 0; i < maxTrees; i++)
         {
             SpawnTree();
         }
+
+        // Tüm ağaçlar oluşturuldu, event'i tetikle
+        isGenerationComplete = true;
+        Debug.Log("TreeSpawner: All trees spawned successfully!");
+        OnTreeGenerationComplete?.Invoke();
     }
 
     private void SpawnTree()
@@ -78,8 +91,8 @@ public class TreeSpawner : NetworkBehaviour
         while (attempts < maxAttempts)
         {
             attempts++;
-            x = Random.Range(xSpawnRange.x, xSpawnRange.y); // Random x within range
-            z = Random.Range(zSpawnRange.x, zSpawnRange.y); // Random z within range
+            x = UnityEngine.Random.Range(xSpawnRange.x, xSpawnRange.y); // Random x within range
+            z = UnityEngine.Random.Range(zSpawnRange.x, zSpawnRange.y); // Random z within range
 
             Vector3 spawnPoint = new Vector3(x, 30f, z); // Start raycast from a higher y-value
             Ray ray = new Ray(spawnPoint, Vector3.down); // Ray pointing downward

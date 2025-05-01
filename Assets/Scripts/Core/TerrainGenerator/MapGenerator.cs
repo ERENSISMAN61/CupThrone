@@ -7,6 +7,13 @@ using Unity.Netcode;
 
 public class MapGenerator : MonoBehaviour
 {
+    // Terrain oluşturma tamamlandığında tetiklenecek event
+    public static event Action OnTerrainGenerationComplete;
+
+    // Terrain oluşturuldu mu?
+    private bool isGenerationComplete = false;
+    public bool IsGenerationComplete => isGenerationComplete;
+
     public enum DrawMode { NoiseMap, ColoredHeightMap, Mesh, FalloffMap };
     public DrawMode drawMode;
 
@@ -329,7 +336,7 @@ public class MapGenerator : MonoBehaviour
         if (TerrainSeedManager.CurrentSeed > 0)
         {
             directNetworkSeed = TerrainSeedManager.CurrentSeed;
-//            Debug.Log($"Direct TerrainSeedManager seed: {directNetworkSeed}");
+            //            Debug.Log($"Direct TerrainSeedManager seed: {directNetworkSeed}");
         }
         // NetworkTerrainManager seed değeri kontrolü
         else if (NetworkTerrainManager.TerrainSeedValue > 0)
@@ -343,7 +350,7 @@ public class MapGenerator : MonoBehaviour
         if (noiseData != null && noiseData.seed > 0)
         {
             noiseDataSeed = noiseData.seed;
-//            Debug.Log($"NoiseData seed: {noiseDataSeed}");
+            //            Debug.Log($"NoiseData seed: {noiseDataSeed}");
         }
 
         // Seed değerini ayarla - öncelik direkt networked değerlerde
@@ -354,7 +361,7 @@ public class MapGenerator : MonoBehaviour
             {
                 currentSeedValue = directNetworkSeed;
                 seedInitialized = true;
-//                Debug.Log($"UpdateCurrentSeedFromNetworkManager - Networked seed kullanıldı: {currentSeedValue}");
+                //                Debug.Log($"UpdateCurrentSeedFromNetworkManager - Networked seed kullanıldı: {currentSeedValue}");
             }
             // Sonra NoiseData değerini dene
             else if (noiseDataSeed > 0 && !seedInitialized)
@@ -374,7 +381,7 @@ public class MapGenerator : MonoBehaviour
             if (noiseData != null && currentSeedValue > 0)
             {
                 noiseData.seed = currentSeedValue;
-//                Debug.Log($"NoiseData seed updated to: {currentSeedValue}");
+                //                Debug.Log($"NoiseData seed updated to: {currentSeedValue}");
             }
         }
     }
@@ -430,6 +437,26 @@ public class MapGenerator : MonoBehaviour
         }
 
         return -1;
+    }
+
+    // Terrain oluşturulduğunda bu metod çağrılır
+    private void TerrainGenerationCompleted()
+    {
+        isGenerationComplete = true;
+        Debug.Log("MapGenerator: Terrain generation completed");
+
+        // Event'i tetikle
+        OnTerrainGenerationComplete?.Invoke();
+    }
+
+    // EndlessTerrain'den tüm terrain chunk'ların oluşturulduğunu bildirecek metod
+    public void NotifyAllChunksCreated()
+    {
+        // Eğer daha önce tamamlanmadıysa, terrain oluşturma işleminin tamamlandığını işaretle
+        if (!isGenerationComplete)
+        {
+            TerrainGenerationCompleted();
+        }
     }
 
     struct MapThreadInfo<T>

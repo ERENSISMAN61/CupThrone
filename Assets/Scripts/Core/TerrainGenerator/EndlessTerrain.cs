@@ -23,6 +23,10 @@ public class EndlessTerrain : MonoBehaviour
     Dictionary<Vector2, TerrainChunk> terrainChunkDictionary = new Dictionary<Vector2, TerrainChunk>();
     static List<TerrainChunk> terrainChunksVisibleLastUpdate = new List<TerrainChunk>();
 
+    private bool hasNotifiedMapGenerator = false;
+    private int initialChunkCount = 0;
+    private int loadedChunkCount = 0;
+
     void Start()
     {
         mapGenerator = FindAnyObjectByType<MapGenerator>();
@@ -49,7 +53,44 @@ public class EndlessTerrain : MonoBehaviour
         chunkSize = mapGenerator.mapChunkSize - 1;
         chunksVisibleInViewDst = Mathf.RoundToInt(maxViewDst / chunkSize);
 
+        // İlk chunk sayısını hesapla (görünür alandaki toplam chunk sayısı)
+        initialChunkCount = (chunksVisibleInViewDst * 2 + 1) * (chunksVisibleInViewDst * 2 + 1);
+
         UpdateVisibleChunks();
+
+        // Terrain oluşumunun durumunu kontrol et
+        StartCoroutine(CheckTerrainGenerationProgress());
+    }
+
+    private IEnumerator CheckTerrainGenerationProgress()
+    {
+        // Terrain chunk'ların oluşturulmasını bekleyin
+        while (loadedChunkCount < initialChunkCount)
+        {
+            loadedChunkCount = 0;
+
+            // Sözlükteki tüm chunk'ları kontrol et
+            foreach (var chunk in terrainChunkDictionary.Values)
+            {
+                if (chunk.HasMeshLoaded())
+                {
+                    loadedChunkCount++;
+                }
+            }
+
+            // Progres logla
+            Debug.Log($"Terrain generation progress: {loadedChunkCount}/{initialChunkCount} chunks loaded");
+
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        // Tüm terrain chunk'lar oluşturuldu, MapGenerator'a bildir
+        if (!hasNotifiedMapGenerator && mapGenerator != null)
+        {
+            Debug.Log("All terrain chunks loaded. Notifying MapGenerator.");
+            mapGenerator.NotifyAllChunksCreated();
+            hasNotifiedMapGenerator = true;
+        }
     }
 
     private void Update()
@@ -215,6 +256,12 @@ public class EndlessTerrain : MonoBehaviour
 
                 SetVisible(visible);
             }
+        }
+
+        // Chunk'ın mesh'i yüklendi mi kontrolü
+        public bool HasMeshLoaded()
+        {
+            return mapDataReceived && previousLODIndex >= 0 && lodMeshes[previousLODIndex].hasMesh;
         }
 
         public void SetVisible(bool visible)
