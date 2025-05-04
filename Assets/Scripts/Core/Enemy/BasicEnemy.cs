@@ -181,8 +181,20 @@ public class BasicEnemy : Enemy
     {
         // Server olmayan client'lerde hareket kontrollerini yapma
         // Client'lerde düşmanlar server tarafından kontrol ediliyor
-        if (!IsServer) return;
         if (isDead) return;
+
+        // Hareket hızını kontrol ederek animasyonları ayarla
+        float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
+        if (actualSpeed > movementThreshold)
+        {
+            SetWalkingAnimation();
+        }
+        else
+        {
+            SetIdleAnimation();
+        }
+
+        if (!IsServer) return;
 
         if (targetPlayer != null)
         {
@@ -199,17 +211,6 @@ public class BasicEnemy : Enemy
                 try
                 {
                     navMeshAgent.SetDestination(targetPlayer.position);
-
-                    // Gerçek ilerleme hızını kontrol et - hareket hızına göre animasyon belirle
-                    float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
-                    if (actualSpeed > movementThreshold)
-                    {
-                        SetWalkingAnimation();
-                    }
-                    else
-                    {
-                        SetIdleAnimation();
-                    }
                 }
                 catch (Exception e)
                 {
@@ -231,22 +232,6 @@ public class BasicEnemy : Enemy
             {
                 patrolCoroutine = StartCoroutine(PatrolBehavior());
             }
-
-            // Gerçek ilerleme hızını kontrol et - yalnızca X ve Z düzleminde hareket ölçümü
-            float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
-            if (actualSpeed > movementThreshold)
-            {
-                SetWalkingAnimation();
-            }
-            else
-            {
-                SetIdleAnimation();
-            }
-        }
-        else
-        {
-            // Hiçbir hareket yoksa idle animasyonunu ayarla
-            SetIdleAnimation();
         }
     }
 
@@ -380,7 +365,7 @@ public class BasicEnemy : Enemy
                     {
                         currentPatrolTarget = hit.position;
                         navMeshAgent.SetDestination(currentPatrolTarget);
-                        Debug.Log($"Yeni devriye noktası belirlendi: {currentPatrolTarget}");
+                        Debug.Log("Yeni devriye noktası belirlendi:"); //Debug.Log($"Yeni devriye noktası belirlendi: {currentPatrolTarget}");
 
                         // Hareket başlıyor, yürüme animasyonu
                         SetWalkingAnimation();

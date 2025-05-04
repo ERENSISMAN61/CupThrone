@@ -69,7 +69,7 @@ public class TreeSpawner : NetworkBehaviour
         if (networkObject != null)
         {
             networkObject.Spawn(true); // Ensure the tree is spawned on the network
-            Debug.Log($"Tree spawned on network at {spawnPoint}");
+            Debug.Log($"Tree spawned on network at"); //Debug.Log($"Tree spawned on network at {spawnPoint}");
         }
         else
         {
@@ -101,7 +101,7 @@ public class TreeSpawner : NetworkBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, terrainLayerMask)) // Check for terrain collision
             {
                 // Always log raycast hits regardless of debug settings
-                Debug.Log($"Food spawn raycast hit: {hit.collider.name} at {hit.point}");
+                Debug.Log($"Food spawn raycast hit: "); //Debug.Log($"Food spawn raycast hit: {hit.collider.name} at {hit.point}");
 
                 if (showDebugGizmos)
                 {

@@ -171,7 +171,7 @@ public class EnemySpawner : NetworkBehaviour
             if (networkObject != null)
             {
                 networkObject.Spawn();
-                Debug.Log($"Düşman ağda oluşturuldu: {spawnPoint}");
+                Debug.Log("Düşman ağda oluşturuldu:"); //Debug.Log($"Düşman ağda oluşturuldu: {spawnPoint}");
             }
             else
             {
