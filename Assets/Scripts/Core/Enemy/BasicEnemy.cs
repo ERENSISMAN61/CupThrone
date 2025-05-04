@@ -417,32 +417,27 @@ public class BasicEnemy : Enemy
                     Debug.Log("b 4");
                     if (!isWaitingAtPatrolPoint)
                     {
-                        // Bir noktada bekle
                         isWaitingAtPatrolPoint = true;
-                        float waitTime = UnityEngine.Random.Range(minPatrolWaitTime, maxPatrolWaitTime);
 
-                        // Beklerken idle animasyonu
-                        SetIdleAnimation();
+                        // 2 saniye Idle state'e geç
+                        currentState = EnemyState.Idle;
+                        yield return new WaitForSeconds(2f);
 
-                        yield return new WaitForSeconds(waitTime);
+                        // 2 saniye sonra tekrar Patrolling state'e geç
+                        currentState = EnemyState.Patrolling;
                         isWaitingAtPatrolPoint = false;
-                    }
 
-                    // Yeni bir devriye noktası belirle
-                    Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * patrolRadius;
-                    randomDirection.y = 0;
-                    Vector3 randomPoint = spawnPosition + randomDirection;
+                        // Yeni bir devriye noktası belirle
+                        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * patrolRadius;
+                        randomDirection.y = 0;
+                        Vector3 randomPoint = spawnPosition + randomDirection;
 
-                    // NavMesh üzerinde erişilebilir bir nokta bul
-                    NavMeshHit hit;
-                    if (NavMesh.SamplePosition(randomPoint, out hit, patrolRadius, NavMesh.AllAreas))
-                    {
-                        Debug.Log("b 5");
-                        currentPatrolTarget = hit.position;
-                        navMeshAgent.SetDestination(currentPatrolTarget);
-                        Debug.Log("Yeni devriye noktası belirlendi:"); //Debug.Log($"Yeni devriye noktası belirlendi: {currentPatrolTarget}");
-
-
+                        NavMeshHit hit;
+                        if (NavMesh.SamplePosition(randomPoint, out hit, patrolRadius, NavMesh.AllAreas))
+                        {
+                            currentPatrolTarget = hit.position;
+                            navMeshAgent.SetDestination(currentPatrolTarget);
+                        }
                     }
                 }
 
