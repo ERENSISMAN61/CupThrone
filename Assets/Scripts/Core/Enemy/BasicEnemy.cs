@@ -21,6 +21,7 @@ public class BasicEnemy : Enemy
     [Header("Animasyon Kontrolleri")]
     [SerializeField] private Animator animator; // Animator bileşeni
     [SerializeField] private float movementThreshold = 0.2f; // Hareket algılama eşiği
+    [SerializeField] float actualSpeed = 0f;
 
     private NavMeshAgent navMeshAgent; // Düşmanın hareket bileşeni
     private Transform targetPlayer; // Hedef oyuncu transformu
@@ -184,7 +185,7 @@ public class BasicEnemy : Enemy
         if (isDead) return;
 
         // Hareket hızını kontrol ederek animasyonları ayarla
-        float actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
+        actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
         if (actualSpeed > movementThreshold)
         {
             SetWalkingAnimation();

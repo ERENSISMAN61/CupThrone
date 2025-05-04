@@ -1363,7 +1363,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1.76
-  m_BaseOffset: -0.03
+  m_BaseOffset: -0.195
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &6591748029447118286
@@ -1394,6 +1394,8 @@ MonoBehaviour:
   maxPatrolWaitTime: 5
   patrolPointDistance: 1
   animator: {fileID: 0}
+  movementThreshold: 0.8
+  actualSpeed: 0
 --- !u!1 &3343561760992133880
 GameObject:
   m_ObjectHideFlags: 0
