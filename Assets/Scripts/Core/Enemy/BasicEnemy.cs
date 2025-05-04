@@ -236,17 +236,21 @@ public class BasicEnemy : Enemy
 
     private void HandleIdleState()
     {
+        Debug.Log("Cc 0 targetPlayer: " + targetPlayer + "\n enablePatrol: " + enablePatrol + "\n patrolCoroutine: " + patrolCoroutine);
         if (targetPlayer == null)
         {
+            Debug.Log("Cc 1");
             FindNearestPlayer();
         }
 
         if (targetPlayer != null)
         {
+            Debug.Log("Cc 2");
             currentState = EnemyState.Chasing;
         }
         else if (enablePatrol && patrolCoroutine == null)
         {
+            Debug.Log("Cc 3");
             currentState = EnemyState.Patrolling;
         }
     }
@@ -260,8 +264,12 @@ public class BasicEnemy : Enemy
 
         if (targetPlayer != null)
         {
-            StopCoroutine(patrolCoroutine);
-            patrolCoroutine = null;
+            if (patrolCoroutine != null)
+            {
+                StopCoroutine(patrolCoroutine);
+                patrolCoroutine = null;
+            }
+
             currentState = EnemyState.Chasing;
         }
     }
@@ -312,7 +320,7 @@ public class BasicEnemy : Enemy
 
     private void AttackPlayer()
     {
-        if (targetPlayer.TryGetComponent<Health>(out Health playerHealth))
+        if (targetPlayer.parent.TryGetComponent<Health>(out Health playerHealth))
         {
             playerHealth.TakeDamage(attackDamage);
             SetPunchAnimation(); // Saldırı animasyonunu tetikle
@@ -342,6 +350,7 @@ public class BasicEnemy : Enemy
 
     private void SetPunchAnimation()
     {
+        Debug.Log("Attacking SetPunchAnimation çağrıldı");
         if (animator != null)
         {
             animator.SetBool(isIdleParam, false);
@@ -412,12 +421,15 @@ public class BasicEnemy : Enemy
             {
                 Debug.Log("b 3");
                 // Henüz bir devriye noktasına gitmiyorsa veya hedefine ulaştıysa
-                if (!navMeshAgent.hasPath || navMeshAgent.remainingDistance <= patrolPointDistance)
+                if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= patrolPointDistance)
                 {
                     Debug.Log("b 4");
                     if (!isWaitingAtPatrolPoint)
                     {
                         isWaitingAtPatrolPoint = true;
+
+                        // Hedefe ulaşıldığında hareketi durdur
+                        navMeshAgent.isStopped = true;
 
                         // 2 saniye Idle state'e geç
                         currentState = EnemyState.Idle;
@@ -438,6 +450,9 @@ public class BasicEnemy : Enemy
                             currentPatrolTarget = hit.position;
                             navMeshAgent.SetDestination(currentPatrolTarget);
                         }
+
+                        // Hareketi yeniden başlat
+                        navMeshAgent.isStopped = false;
                     }
                 }
 

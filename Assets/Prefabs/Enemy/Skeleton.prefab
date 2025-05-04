@@ -1272,7 +1272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1469841902
+  GlobalObjectIdHash: 2003418758
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1396,6 +1396,10 @@ MonoBehaviour:
   animator: {fileID: 0}
   movementThreshold: 0.8
   actualSpeed: 0
+  attackDamage: 10
+  attackRange: 3
+  attackCooldown: 1.5
+  chaseTimeout: 2
 --- !u!1 &3343561760992133880
 GameObject:
   m_ObjectHideFlags: 0
