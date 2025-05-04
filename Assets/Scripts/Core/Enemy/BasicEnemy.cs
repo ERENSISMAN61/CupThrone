@@ -23,6 +23,12 @@ public class BasicEnemy : Enemy
     [SerializeField] private float movementThreshold = 0.2f; // Hareket algılama eşiği
     [SerializeField] float actualSpeed = 0f;
 
+    [SerializeField] private int attackDamage = 10; // Enemy'nin saldırı hasarı
+    [SerializeField] private float attackRange = 2.0f; // Enemy'nin saldırı menzili
+    [SerializeField] private float attackCooldown = 1.5f; // Saldırı bekleme süresi
+
+    private float lastAttackTime = 0f; // Son saldırı zamanı
+
     private NavMeshAgent navMeshAgent; // Düşmanın hareket bileşeni
     private Transform targetPlayer; // Hedef oyuncu transformu
     private bool navMeshInitialized = false; // NavMesh başlatıldı mı
@@ -33,6 +39,9 @@ public class BasicEnemy : Enemy
     private bool isWaitingAtPatrolPoint = false; // Devriye noktasında bekliyor mu
     private bool isPatrolling = false; // Devriye geziyor mu
 
+    private float timeSinceLastChase = 0f; // Son takipten bu yana geçen süre
+    [SerializeField] private float chaseTimeout = 2f; // Takipten sonra devriyeye dönme süresi
+
     // Animator parametreleri
     private readonly int isIdleParam = Animator.StringToHash("isIdle");
     private readonly int isWalkingParam = Animator.StringToHash("isWalking");
@@ -40,6 +49,16 @@ public class BasicEnemy : Enemy
     private readonly int isPunchingParam = Animator.StringToHash("isPunching");
 
     public event Action<BasicEnemy> OnEnemyDefeated; // Düşman yenildiğinde tetiklenen olay
+
+    private enum EnemyState
+    {
+        Idle,
+        Patrolling,
+        Chasing,
+        Attacking
+    }
+
+    private EnemyState currentState = EnemyState.Idle;
 
     private void Awake()
     {
@@ -168,6 +187,7 @@ public class BasicEnemy : Enemy
                 if (enablePatrol && patrolCoroutine == null)
                 {
                     patrolCoroutine = StartCoroutine(PatrolBehavior());
+                    currentState = EnemyState.Patrolling; // Devriye davranışı başlatıldığında durumu güncelle
                 }
             }
             catch (Exception e)
@@ -180,7 +200,7 @@ public class BasicEnemy : Enemy
 
     private void Update()
     {
-        // Server olmayan client'lerde hareket kontrollerini yapma
+        Debug.Log("curr State:" + currentState);
         // Client'lerde düşmanlar server tarafından kontrol ediliyor
         if (isDead) return;
 
@@ -197,42 +217,105 @@ public class BasicEnemy : Enemy
 
         if (!IsServer) return;
 
+        switch (currentState)
+        {
+            case EnemyState.Idle:
+                HandleIdleState();
+                break;
+            case EnemyState.Patrolling:
+                HandlePatrollingState();
+                break;
+            case EnemyState.Chasing:
+                HandleChasingState();
+                break;
+            case EnemyState.Attacking:
+                HandleAttackingState();
+                break;
+        }
+    }
+
+    private void HandleIdleState()
+    {
+        if (targetPlayer == null)
+        {
+            FindNearestPlayer();
+        }
+
         if (targetPlayer != null)
         {
-            // Oyuncu algılandığında devriye davranışını durdur
-            if (patrolCoroutine != null && isPatrolling)
-            {
-                isPatrolling = false;
-                isWaitingAtPatrolPoint = false;
-            }
+            currentState = EnemyState.Chasing;
+        }
+        else if (enablePatrol && patrolCoroutine == null)
+        {
+            currentState = EnemyState.Patrolling;
+        }
+    }
 
-            // NavMeshAgent başarıyla başlatıldıysa kullan
-            if (navMeshAgent != null && navMeshAgent.enabled && navMeshInitialized)
+    private void HandlePatrollingState()
+    {
+        if (patrolCoroutine == null)
+        {
+            patrolCoroutine = StartCoroutine(PatrolBehavior());
+        }
+
+        if (targetPlayer != null)
+        {
+            StopCoroutine(patrolCoroutine);
+            patrolCoroutine = null;
+            currentState = EnemyState.Chasing;
+        }
+    }
+
+    private void HandleChasingState()
+    {
+        if (targetPlayer == null || !targetPlayer.gameObject.activeInHierarchy)
+        {
+            timeSinceLastChase += Time.deltaTime;
+
+            if (timeSinceLastChase >= chaseTimeout)
             {
-                try
-                {
-                    navMeshAgent.SetDestination(targetPlayer.position);
-                }
-                catch (Exception e)
-                {
-                    // Hata durumunda alternatif hareket kullan
-                    Debug.LogWarning($"NavMeshAgent hatası: {e.Message}");
-                    MoveWithoutNavMesh();
-                }
-            }
-            // NavMeshAgent yoksa veya başlatılamadıysa basit hareket kullan
-            else
-            {
-                MoveWithoutNavMesh();
+                currentState = EnemyState.Patrolling;
             }
         }
-        else if (enablePatrol && navMeshInitialized && navMeshAgent != null && navMeshAgent.enabled)
+        else
         {
-            // Oyuncu yoksa ve devriye davranışı etkinse
-            if (patrolCoroutine == null)
+            timeSinceLastChase = 0f;
+            ChasePlayer();
+
+            float distanceToPlayer = Vector3.Distance(transform.position, targetPlayer.position);
+            if (distanceToPlayer <= attackRange)
             {
-                patrolCoroutine = StartCoroutine(PatrolBehavior());
+                currentState = EnemyState.Attacking;
             }
+        }
+    }
+
+    private void HandleAttackingState()
+    {
+        if (targetPlayer == null || !targetPlayer.gameObject.activeInHierarchy)
+        {
+            currentState = EnemyState.Idle;
+            return;
+        }
+
+        float distanceToPlayer = Vector3.Distance(transform.position, targetPlayer.position);
+        if (distanceToPlayer > attackRange)
+        {
+            currentState = EnemyState.Chasing;
+        }
+        else if (Time.time >= lastAttackTime + attackCooldown)
+        {
+            AttackPlayer();
+            lastAttackTime = Time.time;
+        }
+    }
+
+    private void AttackPlayer()
+    {
+        if (targetPlayer.TryGetComponent<Health>(out Health playerHealth))
+        {
+            playerHealth.TakeDamage(attackDamage);
+            SetPunchAnimation(); // Saldırı animasyonunu tetikle
         }
     }
 
@@ -288,38 +371,17 @@ public class BasicEnemy : Enemy
         }
     }
 
-    private void MoveWithoutNavMesh()
-    {
-        if (targetPlayer == null) return;
-
-        // NavMesh olmadan basit hareket
-        Vector3 direction = (targetPlayer.position - transform.position).normalized;
-        direction.y = 0; // Y ekseninde hareket etmesini engelle
-        transform.position += direction * moveSpeed * Time.deltaTime;
-
-        // Hareket ediyor, yürüme animasyonunu ayarla
-        SetWalkingAnimation();
-
-        // Hedefe doğru dön
-        if (enemyModel != null)
-        {
-            Quaternion lookRotation = Quaternion.LookRotation(direction);
-            enemyModel.rotation = Quaternion.Slerp(enemyModel.rotation, lookRotation, Time.deltaTime * 5f);
-        }
-    }
 
     private void FindNearestPlayer()
     {
-        // Tüm oyuncu objelerini bul (Player tag'i ile işaretlenmiş olmalılar)
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-
         float closestDistance = float.MaxValue;
         Transform closestPlayer = null;
 
         foreach (GameObject player in players)
         {
             float distance = Vector3.Distance(transform.position, player.transform.position);
-            if (distance < closestDistance && distance < detectionRadius)
+            if (distance < closestDistance && distance <= detectionRadius)
             {
                 closestDistance = distance;
                 closestPlayer = player.transform;
@@ -329,19 +391,30 @@ public class BasicEnemy : Enemy
         targetPlayer = closestPlayer;
     }
 
+    private void ChasePlayer()
+    {
+        if (targetPlayer != null && navMeshAgent != null && navMeshAgent.enabled)
+        {
+            navMeshAgent.SetDestination(targetPlayer.position);
+        }
+    }
+
     // Yeni eklenen devriye davranışı
     private IEnumerator PatrolBehavior()
     {
         isPatrolling = true;
-
+        Debug.Log("b 1");
         while (isPatrolling && navMeshAgent != null && navMeshAgent.enabled && !isDead)
         {
+            Debug.Log("b 2");
             // Eğer hedef oyuncu yoksa devriye gez
             if (targetPlayer == null)
             {
+                Debug.Log("b 3");
                 // Henüz bir devriye noktasına gitmiyorsa veya hedefine ulaştıysa
                 if (!navMeshAgent.hasPath || navMeshAgent.remainingDistance <= patrolPointDistance)
                 {
+                    Debug.Log("b 4");
                     if (!isWaitingAtPatrolPoint)
                     {
                         // Bir noktada bekle
@@ -364,12 +437,12 @@ public class BasicEnemy : Enemy
                     NavMeshHit hit;
                     if (NavMesh.SamplePosition(randomPoint, out hit, patrolRadius, NavMesh.AllAreas))
                     {
+                        Debug.Log("b 5");
                         currentPatrolTarget = hit.position;
                         navMeshAgent.SetDestination(currentPatrolTarget);
                         Debug.Log("Yeni devriye noktası belirlendi:"); //Debug.Log($"Yeni devriye noktası belirlendi: {currentPatrolTarget}");
 
-                        // Hareket başlıyor, yürüme animasyonu
-                        SetWalkingAnimation();
+
                     }
                 }
 
@@ -472,5 +545,6 @@ public class BasicEnemy : Enemy
                 InitializeNavMeshAgent();
             }
         }
+
     }
 }

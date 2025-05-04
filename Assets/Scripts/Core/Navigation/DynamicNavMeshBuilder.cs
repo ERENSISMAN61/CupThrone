@@ -129,7 +129,7 @@ public class DynamicNavMeshBuilder : MonoBehaviour
         Debug.Log("DynamicNavMeshBuilder: Generator durumları kontrol ediliyor");
 
         // MapGenerator'ın IsGenerationComplete özelliğini kontrol et
-        MapGenerator mapGenerator = FindObjectOfType<MapGenerator>();
+        MapGenerator mapGenerator = Object.FindFirstObjectByType<MapGenerator>();
         if (mapGenerator != null && mapGenerator.IsGenerationComplete)
         {
             isTerrainReady = true;
@@ -137,7 +137,7 @@ public class DynamicNavMeshBuilder : MonoBehaviour
         }
 
         // TreeSpawner'ın IsGenerationComplete özelliğini kontrol et
-        TreeSpawner treeSpawner = FindObjectOfType<TreeSpawner>();
+        TreeSpawner treeSpawner = Object.FindFirstObjectByType<TreeSpawner>();
         if (treeSpawner != null && treeSpawner.IsGenerationComplete)
         {
             isTreesReady = true;

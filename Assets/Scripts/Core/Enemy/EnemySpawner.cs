@@ -110,14 +110,14 @@ public class EnemySpawner : NetworkBehaviour
 
     private IEnumerator DelayedSpawnEnemies()
     {
-        if (isSpawning) yield break; // Zaten oluşturuluyorsa çık
+        if (isSpawning || spawnedEnemies.Count >= maxEnemies) yield break; // Zaten oluşturuluyorsa veya maksimum düşman sayısına ulaşıldıysa çık
 
         // İlk spawn için kısa bir gecikme
         yield return new WaitForSeconds(initialSpawnDelay);
 
         Debug.Log("EnemySpawner: Düşmanlar oluşturuluyor...");
 
-        //Düşmanın yarıçapını belirleme
+        // Düşmanın yarıçapını belirleme
         if (enemyPrefab.GetComponent<CapsuleCollider>() != null)
         {
             enemyRadius = enemyPrefab.GetComponent<CapsuleCollider>().radius;
@@ -128,18 +128,18 @@ public class EnemySpawner : NetworkBehaviour
         }
         else
         {
-            enemyRadius = 1f; //Collider bulunamazsa varsayılan yarıçap
+            enemyRadius = 1f; // Collider bulunamazsa varsayılan yarıçap
         }
 
         isSpawning = true;
-        for (int i = 0; i < maxEnemies; i++)
+        for (int i = spawnedEnemies.Count; i < maxEnemies; i++)
         {
             BasicEnemy enemy = SpawnEnemy();
             if (enemy != null)
             {
                 spawnedEnemies.Add(enemy);
             }
-            yield return new WaitForSeconds(0.1f); //Performans düşüşü olmaması için ufak gecikme
+            yield return new WaitForSeconds(0.1f); // Performans düşüşü olmaması için ufak gecikme
         }
         isSpawning = false;
 
