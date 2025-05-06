@@ -19,10 +19,10 @@ public static class StartupSceneLoader
 
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
-            if (EditorSceneManager.GetActiveScene().buildIndex != 0)
-            {
-                EditorSceneManager.LoadScene(0);
-            }
+            // if (EditorSceneManager.GetActiveScene().buildIndex != 0)
+            // {
+            //     EditorSceneManager.LoadScene(0);
+            // }
         }
     }
 }
