@@ -107,6 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   meshRenderer: {fileID: 3013258974254224125}
+  foodItem: {fileID: 11400000, guid: 432eb4abb5e62ce45aa6a143dabbd8c0, type: 2}
 --- !u!135 &6986852468220763996
 SphereCollider:
   m_ObjectHideFlags: 0

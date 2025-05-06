@@ -3,30 +3,30 @@ using UnityEngine;
 
 public class FoodWallet : NetworkBehaviour
 {
-
+    [SerializeField] private Inventory inventory = null;
     public NetworkVariable<int> TotalFoods = new NetworkVariable<int>();
 
     public void SpendCoins(int cost)
     {
         TotalFoods.Value -= cost;
     }
+    
     private void OnTriggerEnter(Collider collider)
     {
-
         if (!collider.TryGetComponent<Food>(out Food food)) { return; }
 
-        int foodValue = food.Collect(); //Coin class'ını coin olarak çalıştırabilmemizin nedeni,
-                                        //if bloğunda Coin class'ını coin olarak atamıştık. 
-                                        //şu an bu kısım else bloğunda çalıştığı için coin class'ını coin olarak çalıştırabiliyoruz.
+        ConsumableItem foodItem = food.GetFoodItem();
+        if (foodItem == null) { return; }
+        
+        // Collect the food object (hide/destroy it)
+        int foodValue = food.Collect();
+        
+        if (!IsServer) { return; }
 
-
-        if (!IsServer) { return; } // aşağıdaki Total coini sadece serverda arttırma işlemini yaptıracağız
-                                   // o yüzden bu if bloğu koyduk.
-                                   //!!Neden bu satır en üstte değil?
-                                   //Çünkü bu satırın üstünde coin.Collect() metodunu client ayrı server ayrı yorumluyor.
-                                   //Collect metoduna bakarsak client para gizlemekle ilgileniyor server para eklemekle.
-
-
+        // Add the food item to inventory
+        inventory.ItemContainer.AddItem(new ItemSlot(foodItem, 1));
+        
+        // Still track total food count if needed
         TotalFoods.Value += foodValue;
     }
 }

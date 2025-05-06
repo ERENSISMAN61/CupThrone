@@ -5,6 +5,7 @@ public abstract class Food : NetworkBehaviour// child classlar artık NetworkBeh
                                              //ve IsServer gibi metodları kullanabilecek alt classlar.
 {
     [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private ConsumableItem foodItem;
 
     //protected özellikler inspectorde görünmez.
     protected int foodValue = 5; //protected olmasının sebebi, bu değeri sadece bu class ve bu class'ı inherit eden classlar kullanabilecek.
@@ -27,4 +28,8 @@ public abstract class Food : NetworkBehaviour// child classlar artık NetworkBeh
         meshRenderer.enabled = show;
     }
 
+    public ConsumableItem GetFoodItem()
+    {
+        return foodItem;
+    }
 }
