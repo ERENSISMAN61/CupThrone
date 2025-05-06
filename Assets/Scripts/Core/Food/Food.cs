@@ -32,4 +32,29 @@ public abstract class Food : NetworkBehaviour// child classlar artık NetworkBeh
     {
         return foodItem;
     }
+    
+    // Make this method handle network synchronization of the food collection
+    [ServerRpc(RequireOwnership = false)]
+    public void CollectServerRpc(ulong playerId)
+    {
+        if (alreadyCollected) return;
+        
+        // Mark as collected and hide the food
+        alreadyCollected = true;
+        Show(false);
+        
+        // Call Collect to trigger any additional logic in child classes
+        int foodValue = Collect();
+        
+        // Notify all clients that this food was collected
+        CollectClientRpc();
+    }
+    
+    [ClientRpc]
+    private void CollectClientRpc()
+    {
+        // Update visual state on all clients
+        Show(false);
+        alreadyCollected = true;
+    }
 }
