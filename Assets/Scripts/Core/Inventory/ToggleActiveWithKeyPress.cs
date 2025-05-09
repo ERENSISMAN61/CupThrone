@@ -10,6 +10,17 @@ public class ToggleActiveWithKeyPress : MonoBehaviour
         if (Input.GetKeyDown(keyCode))
         {
             objectToToggle.SetActive(!objectToToggle.activeSelf); // Toggle the active state of the GameObject
+
+            if (objectToToggle.activeSelf)
+            {
+                Cursor.lockState = CursorLockMode.None; // Unlock the cursor
+                Cursor.visible = true; // Make the cursor visible
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked; // Lock the cursor
+                Cursor.visible = false; // Hide the cursor
+            }
         }
     }
 }
