@@ -23,8 +23,9 @@ public class FoodSpawner : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        Debug.LogError("000000FoodSpawner OnNetworkSpawn called.");
         if (!IsServer) { return; }
-
+        Debug.LogError("11111FoodSpawner OnNetworkSpawn called on server.");
         StartCoroutine(DelayedSpawnFoods());
     }
 
