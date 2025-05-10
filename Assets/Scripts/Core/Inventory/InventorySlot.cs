@@ -12,10 +12,15 @@ public class InventorySlot : ItemSlotUI, IDropHandler
     public override HotbarItem SlotItem
     {
         get { return ItemSlot.item; }
-        set {}
+        set { }
     }
 
     public ItemSlot ItemSlot => inventory.ItemContainer.GetSlotByIndex(SlotIndex); // Inventory'den slotu alıyoruz. Bu sayede hangi slotta olduğumuzu öğreniyoruz.
+
+    private void Update()
+    {
+        UpdateSlotUI(); // SlotUI'yi güncelliyoruz. Bu sayede slotun içeriğini güncelliyoruz.
+    }
 
     public override void OnDrop(PointerEventData eventData)
     {
@@ -36,7 +41,7 @@ public class InventorySlot : ItemSlotUI, IDropHandler
             EnableSlotUI(false);
             return;
         }
-        
+
         EnableSlotUI(true); // SlotUI'yi enable ediyoruz. Bu sayede slotun içeriğini güncelliyoruz.
 
         itemIconImage.sprite = ItemSlot.item.Icon; // Slotun iconunu alıyoruz. Bu sayede slotun içeriğini güncelliyoruz.
