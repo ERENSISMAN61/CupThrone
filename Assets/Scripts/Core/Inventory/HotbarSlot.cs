@@ -16,10 +16,15 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
 
     public bool AddItem(HotbarItem itemToAdd)
     {
-        if (SlotItem != null) return false; // Slot is already occupied
+        if (SlotItem != null) 
+        {
+            Debug.Log($"Hotbar slot {SlotIndex} is already occupied.");
+            return false; // Slot is already occupied
+        }
 
         SlotItem = itemToAdd;
-
+        
+        Debug.Log($"Added {itemToAdd.Name} to hotbar slot {SlotIndex}");
         return true;
     }
 
@@ -61,6 +66,8 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
         }
 
         itemIconImage.sprite = SlotItem.Icon;
+
+        Debug.Log($"Hotbar slot {SlotIndex} updated with item: {SlotItem.Name}");
 
         EnableSlotUI(true);
 
