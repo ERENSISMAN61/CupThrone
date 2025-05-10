@@ -19,7 +19,7 @@ public class HideHeadForOwner : NetworkBehaviour
             headModel.SetActive(false);
             faceStuff.SetActive(false);
             armModel.SetActive(true); // Kolları gizle
-            hotbarUI.SetActive(true); // Hotbar UI'sini göster
+            hotbarUI.SetActive(true); 
         }
         else
         {
