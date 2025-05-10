@@ -5,7 +5,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class BasicEnemy : Enemy
+public class BasicEnemy : Enemy, IInteractable
 {
     [SerializeField] private float moveSpeed = 3.0f; // Düşmanın hareket hızı
     [SerializeField] private float detectionRadius = 10.0f; // Düşmanın oyuncuyu algılama yarıçapı
@@ -26,6 +26,12 @@ public class BasicEnemy : Enemy
     [SerializeField] private int attackDamage = 10; // Enemy'nin saldırı hasarı
     [SerializeField] private float attackRange = 2.0f; // Enemy'nin saldırı menzili
     [SerializeField] private float attackCooldown = 1.5f; // Saldırı bekleme süresi
+
+    [SerializeField] private int maxHealth = 100; // Maximum health of the enemy
+    [SerializeField] private NetworkVariable<int> currentHealth = new NetworkVariable<int>(100); // Networked health variable
+
+    private Dictionary<ulong, float> clientDamageTimestamps = new Dictionary<ulong, float>();
+    private float damageTimeout = 0.5f; // Cooldown in seconds
 
     private float lastAttackTime = 0f; // Son saldırı zamanı
 
@@ -84,6 +90,9 @@ public class BasicEnemy : Enemy
 
         // Başlangıçta Idle animasyonu ayarla
         SetIdleAnimation();
+
+        // Initialize current health
+        currentHealth.Value = maxHealth;
     }
 
     private void OnEnable()
@@ -123,6 +132,9 @@ public class BasicEnemy : Enemy
     {
         base.OnNetworkSpawn();
 
+        // Subscribe to health changes
+        currentHealth.OnValueChanged += OnHealthChanged;
+
         // NavMesh ve NavMeshAgent'ı başlat
         if (initNavMeshCoroutine != null)
             StopCoroutine(initNavMeshCoroutine);
@@ -142,6 +154,14 @@ public class BasicEnemy : Enemy
         if (IsServer)
         {
             InvokeRepeating(nameof(FindNearestPlayer), 1.0f, 1.0f);
+        }
+    }
+
+    private void OnHealthChanged(int oldHealth, int newHealth)
+    {
+        if (newHealth <= 0 && IsServer)
+        {
+            OnDefeated();
         }
     }
 
@@ -333,10 +353,16 @@ public class BasicEnemy : Enemy
 
     private void AttackPlayer()
     {
-        if (targetPlayer.parent.TryGetComponent<Health>(out Health playerHealth))
+        if (targetPlayer != null && targetPlayer.parent.TryGetComponent<Health>(out Health playerHealth))
         {
+            // Reduce player's health
             playerHealth.TakeDamage(attackDamage);
-            SetPunchAnimation(); // Saldırı animasyonunu tetikle
+
+            // Trigger attack animation
+            SetPunchAnimation();
+
+            // Optional: Add feedback like sound or visual effects here
+            Debug.Log($"Player health reduced by {attackDamage} by {gameObject.name}");
         }
     }
 
@@ -498,30 +524,73 @@ public class BasicEnemy : Enemy
     {
         if (isDead) return false;
 
-        health -= damageAmount;
-
-        // Hasar aldığında hit animasyonunu oynat
-        SetHitAnimation();
-
-        if (health <= 0)
+        if (IsServer)
         {
-            isDead = true;
-            OnDefeated();
-            return true;
+            currentHealth.Value -= damageAmount;
+
+            // Play hit animation
+            SetHitAnimation();
+
+            if (currentHealth.Value <= 0)
+            {
+                isDead = true;
+                OnDefeated();
+                return true;
+            }
+        }
+        else
+        {
+            TakeDamageServerRpc(damageAmount, NetworkManager.Singleton.LocalClientId);
         }
 
         return false;
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void TakeDamageServerRpc(int damage, ulong clientId)
+    {
+        ApplyDamage_Internal(damage, clientId);
+    }
+
+    private void ApplyDamage_Internal(int damage, ulong clientId)
+    {
+        if (!IsServer)
+        {
+            Debug.LogWarning("ApplyDamage called on client! This shouldn't happen.");
+            return;
+        }
+
+        if (clientDamageTimestamps.TryGetValue(clientId, out float lastDamageTime))
+        {
+            if (Time.time - lastDamageTime < damageTimeout)
+            {
+                Debug.Log($"Damage cooldown active for client {clientId}. Ignoring this hit.");
+                return;
+            }
+        }
+
+        clientDamageTimestamps[clientId] = Time.time;
+
+        Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
+        currentHealth.Value -= damage;
+        Debug.Log($"AFTER: BasicEnemy took {damage} damage from client {clientId}. Remaining health: {currentHealth.Value}");
+
+        if (currentHealth.Value <= 0)
+        {
+            Debug.Log("BasicEnemy health reached zero, respawning");
+            OnDefeated();
+        }
+    }
+
     public override void OnDefeated()
     {
-        // Düşman yenildi
+        // Enemy defeated
         if (!IsServer) return;
 
-        // Spawner'a haber vermek için olayı tetikle
+        // Trigger defeated event
         OnEnemyDefeated?.Invoke(this);
 
-        // Devriye davranışını durdur
+        // Stop patrol behavior
         isPatrolling = false;
         if (patrolCoroutine != null)
         {
@@ -529,7 +598,7 @@ public class BasicEnemy : Enemy
             patrolCoroutine = null;
         }
 
-        // Hareket ve görselliği devre dışı bırak
+        // Disable movement and visuals
         if (navMeshAgent != null && navMeshAgent.enabled)
         {
             navMeshAgent.isStopped = true;
@@ -537,31 +606,43 @@ public class BasicEnemy : Enemy
         }
 
         SetVisible(false);
+
+        // Respawn enemy at a new location
+        Vector3 respawnPosition = GetRandomRespawnPosition();
+        Reset(respawnPosition);
+    }
+
+    private Vector3 GetRandomRespawnPosition()
+    {
+        // Generate a random position within a defined respawn area
+        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * patrolRadius;
+        randomDirection.y = 0;
+        return spawnPosition + randomDirection;
     }
 
     public void Reset(Vector3 newPosition)
     {
-        // Düşman durumunu sıfırla
+        // Reset enemy state
         isDead = false;
-        health = 100; // Tam sağlığa reset
+        currentHealth.Value = maxHealth; // Reset to full health
 
-        // Pozisyonu sıfırla
+        // Reset position
         transform.position = newPosition;
-        spawnPosition = newPosition; // Yeni spawn pozisyonunu kaydet
+        spawnPosition = newPosition; // Update spawn position
 
-        // Görselleri ve hareketi aktifleştir
+        // Enable visuals and movement
         SetVisible(true);
 
-        // Animasyon durumunu sıfırla
+        // Reset animation state
         SetIdleAnimation();
 
-        // NavMeshAgent'ı başlatma
+        // Reinitialize NavMeshAgent
         if (navMeshAgent != null && !navMeshAgent.enabled && navMeshInitialized)
         {
             navMeshAgent.enabled = true;
             navMeshAgent.isStopped = false;
 
-            // Devriye davranışını yeniden başlat
+            // Restart patrol behavior
             if (enablePatrol && patrolCoroutine == null)
             {
                 patrolCoroutine = StartCoroutine(PatrolBehavior());
@@ -569,12 +650,30 @@ public class BasicEnemy : Enemy
         }
         else if (!navMeshInitialized)
         {
-            // NavMeshAgent zaten başlatılmamışsa, başlatmayı dene
+            // Attempt to initialize NavMeshAgent if not already initialized
             if (DynamicNavMeshBuilder.Instance != null && DynamicNavMeshBuilder.Instance.IsNavMeshReady)
             {
                 InitializeNavMeshAgent();
             }
         }
+    }
 
+    public void Interact()
+    {
+        Debug.Log($"BasicEnemy Interact called. IsServer: {IsServer}, IsClient: {IsClient}, IsHost: {IsHost}");
+
+        // If we're on a dedicated client, we should call the ServerRpc
+        if (IsClient && !IsHost)
+        {
+            Debug.Log("CLIENT MODE: Sending damage request to server");
+            TakeDamageServerRpc(25, NetworkManager.Singleton.LocalClientId);
+        }
+        // If we're on the server (or host), apply damage directly
+        else if (IsServer)
+        {
+            Debug.Log("SERVER MODE: Applying damage directly");
+            // For server, use server's client ID (usually 0)
+            ApplyDamage_Internal(25, NetworkManager.Singleton.LocalClientId);
+        }
     }
 }

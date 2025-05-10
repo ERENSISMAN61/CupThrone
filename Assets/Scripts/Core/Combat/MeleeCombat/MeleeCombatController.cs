@@ -131,26 +131,29 @@ public class MeleeCombatController : NetworkBehaviour
 
     public void Attack()
     {
+        Debug.LogError("1");
         if (!readyToAttack || attacking) return;
-
+        Debug.LogError("2");
         readyToAttack = false;
         attacking = true;
 
         // Delay the interactable attack to match animation timing
         Invoke(nameof(ResetAttack), attackSpeed);
-
+        Debug.LogError("3");
         Invoke(nameof(AttackInteractable), attackDelay);
-
+        Debug.LogError("4");
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.PlayOneShot(swordSwing);
 
         if (attackCount == 0)
         {
+            Debug.LogError("5");
             ChangeAnimationState(ATTACK1);
             attackCount++;
         }
         else
         {
+            Debug.LogError("6");
             ChangeAnimationState(ATTACK2);
             attackCount = 0;
         }
@@ -163,13 +166,16 @@ public class MeleeCombatController : NetworkBehaviour
     // ÖR. AĞACA HASAR VERİLECEĞİ ZAMAN AĞAÇ PREFABINDE HEALTH SCRIPTI, ONUN DA İÇİNDE INTERACT FONKSİYONU YAZILIYOR
     void AttackInteractable()
     {
+        Debug.LogError("AA");
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, attackDistance, attackLayer))
         {
+            Debug.LogError("BB");
             // Skip if we hit ourselves
             if (hit.collider.transform.IsChildOf(transform) || hit.collider.transform == transform)
             {
+                Debug.LogError("CC");
                 return;
             }
 
@@ -177,12 +183,14 @@ public class MeleeCombatController : NetworkBehaviour
             Health targetHealth = hit.collider.GetComponentInParent<Health>();
             if (targetHealth != null && targetHealth.NetworkObject != null)
             {
+                Debug.LogError("DD");
                 // Make sure we're not hitting ourselves
                 if (targetHealth.NetworkObject.OwnerClientId != OwnerClientId)
                 {
+                    Debug.LogError("EE");
                     // Call the ServerRpc to apply damage
                     DealDamageServerRpc(targetHealth.NetworkObject.NetworkObjectId, meleeDamage);
-                    
+
                     // Show hit effect
                     HitTarget(hit.point);
                     return; // Exit after handling player damage
@@ -192,6 +200,7 @@ public class MeleeCombatController : NetworkBehaviour
             // Handle other interactable objects
             if (hit.collider.TryGetComponent(out IInteractable interactable))
             {
+                Debug.LogError("FF");
                 interactable.Interact();
                 HitTarget(hit.point);
             }
@@ -210,7 +219,7 @@ public class MeleeCombatController : NetworkBehaviour
             {
                 // Apply damage to the target
                 targetHealth.TakeDamage(damageAmount);
-                
+
                 // Log the damage (optional)
                 Debug.Log($"Player {OwnerClientId} dealt {damageAmount} damage to player {targetObject.OwnerClientId}");
             }
