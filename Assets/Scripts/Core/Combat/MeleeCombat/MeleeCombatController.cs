@@ -131,29 +131,29 @@ public class MeleeCombatController : NetworkBehaviour
 
     public void Attack()
     {
-        Debug.LogError("1");
+
         if (!readyToAttack || attacking) return;
-        Debug.LogError("2");
+
         readyToAttack = false;
         attacking = true;
 
         // Delay the interactable attack to match animation timing
         Invoke(nameof(ResetAttack), attackSpeed);
-        Debug.LogError("3");
+
         Invoke(nameof(AttackInteractable), attackDelay);
-        Debug.LogError("4");
+
         audioSource.pitch = Random.Range(0.9f, 1.1f);
         audioSource.PlayOneShot(swordSwing);
 
         if (attackCount == 0)
         {
-            Debug.LogError("5");
+
             ChangeAnimationState(ATTACK1);
             attackCount++;
         }
         else
         {
-            Debug.LogError("6");
+
             ChangeAnimationState(ATTACK2);
             attackCount = 0;
         }
