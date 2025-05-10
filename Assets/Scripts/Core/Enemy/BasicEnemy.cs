@@ -217,6 +217,14 @@ public class BasicEnemy : Enemy
 
         if (!IsServer) return;
 
+        // Ensure the enemy always faces the player
+        if (targetPlayer != null && currentState != EnemyState.Patrolling)
+        {
+            Vector3 directionToPlayer = (targetPlayer.position - transform.position).normalized;
+            Quaternion lookRotation = Quaternion.LookRotation(new Vector3(directionToPlayer.x, 0, directionToPlayer.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+        }
+
         switch (currentState)
         {
             case EnemyState.Idle:
@@ -313,6 +321,11 @@ public class BasicEnemy : Enemy
         }
         else if (Time.time >= lastAttackTime + attackCooldown)
         {
+            // Ensure the enemy faces the player before attacking
+            Vector3 directionToPlayer = (targetPlayer.position - transform.position).normalized;
+            Quaternion lookRotation = Quaternion.LookRotation(new Vector3(directionToPlayer.x, 0, directionToPlayer.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+
             AttackPlayer();
             lastAttackTime = Time.time;
         }
@@ -404,7 +417,14 @@ public class BasicEnemy : Enemy
     {
         if (targetPlayer != null && navMeshAgent != null && navMeshAgent.enabled)
         {
-            navMeshAgent.SetDestination(targetPlayer.position);
+            // Adjust destination to maintain attack range
+            Vector3 directionToPlayer = (targetPlayer.position - transform.position).normalized;
+            Vector3 adjustedPosition = targetPlayer.position - directionToPlayer * attackRange;
+            navMeshAgent.SetDestination(adjustedPosition);
+
+            // Smoothly rotate towards the player while chasing
+            Quaternion lookRotation = Quaternion.LookRotation(new Vector3(directionToPlayer.x, 0, directionToPlayer.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
         }
     }
 
@@ -474,7 +494,7 @@ public class BasicEnemy : Enemy
         }
     }
 
-    public bool TakeDamage(int damageAmount)
+    public new bool TakeDamage(int damageAmount)
     {
         if (isDead) return false;
 
