@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3db99f6ea98105f4b9a5e187284cbb53, type: 3}
-  m_Name: Iron
+  m_Name: Stone
   m_EditorClassIdentifier: 
-  name: Iron
-  icon: {fileID: 21300000, guid: 28d2c2677149d45e290e8fa042b1b80f, type: 3}
+  name: Stone
+  icon: {fileID: 21300000, guid: 18dfb3f7ab881c344a5387b6f32e11d2, type: 3}
   maxStackSize: 64
-  useText: Iron ore.
+  useText: Just stone.

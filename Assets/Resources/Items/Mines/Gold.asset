@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3db99f6ea98105f4b9a5e187284cbb53, type: 3}
-  m_Name: Diamond
+  m_Name: Gold
   m_EditorClassIdentifier: 
-  name: Diamond
-  icon: {fileID: 21300000, guid: a7dd774fbdca87d48a37218778589c48, type: 3}
+  name: Gold
+  icon: {fileID: 21300000, guid: 097b132fec2ea2a4fa85d36938c23574, type: 3}
   maxStackSize: 64
-  useText: Diamond ore.
+  useText: Gold ore.
