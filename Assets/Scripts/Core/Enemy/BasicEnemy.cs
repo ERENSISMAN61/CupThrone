@@ -29,7 +29,7 @@ public class BasicEnemy : Enemy, IInteractable
 
     [SerializeField] private int maxHealth = 100; // Maximum health of the enemy
     [SerializeField] private NetworkVariable<int> currentHealth = new NetworkVariable<int>(100); // Networked health variable
-
+    [SerializeField] private Collider enemyCollider; // Enemy'nin collider bileşeni
     private Dictionary<ulong, float> clientDamageTimestamps = new Dictionary<ulong, float>();
     private float damageTimeout = 0.5f; // Cooldown in seconds
 
@@ -133,7 +133,6 @@ public class BasicEnemy : Enemy, IInteractable
         base.OnNetworkSpawn();
 
         // Subscribe to health changes
-        currentHealth.OnValueChanged += OnHealthChanged;
 
         // NavMesh ve NavMeshAgent'ı başlat
         if (initNavMeshCoroutine != null)
@@ -157,13 +156,6 @@ public class BasicEnemy : Enemy, IInteractable
         }
     }
 
-    private void OnHealthChanged(int oldHealth, int newHealth)
-    {
-        if (newHealth <= 0 && IsServer)
-        {
-            OnDefeated();
-        }
-    }
 
     private IEnumerator WaitForNavMeshAndInitialize()
     {
@@ -329,6 +321,8 @@ public class BasicEnemy : Enemy, IInteractable
 
     private void HandleAttackingState()
     {
+        if (currentHealth.Value == 0) return;
+
         if (targetPlayer == null || !targetPlayer.gameObject.activeInHierarchy)
         {
             currentState = EnemyState.Idle;
@@ -523,31 +517,32 @@ public class BasicEnemy : Enemy, IInteractable
         }
     }
 
-    public new bool TakeDamage(int damageAmount)
-    {
-        if (isDead) return false;
+    // public new bool TakeDamage(int damageAmount)
+    // {
+    //     if (isDead) return false;
 
-        if (IsServer)
-        {
-            currentHealth.Value -= damageAmount;
+    //     if (IsServer)
+    //     {
+    //         currentHealth.Value -= damageAmount;
 
-            // Play hit animation
-            SetHitAnimation();
+    //         // Play hit animation
+    //         SetHitAnimation();
 
-            if (currentHealth.Value <= 0)
-            {
-                isDead = true;
-                OnDefeated();
-                return true;
-            }
-        }
-        else
-        {
-            TakeDamageServerRpc(damageAmount, NetworkManager.Singleton.LocalClientId);
-        }
+    //         if (currentHealth.Value <= 0)
+    //         {
+    //             Debug.LogError("TakeDamage");
+    //             isDead = true;
+    //             OnDefeated();
+    //             return true;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         TakeDamageServerRpc(damageAmount, NetworkManager.Singleton.LocalClientId);
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     [ServerRpc(RequireOwnership = false)]
     private void TakeDamageServerRpc(int damage, ulong clientId)
@@ -577,10 +572,11 @@ public class BasicEnemy : Enemy, IInteractable
         //Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
         currentHealth.Value -= damage;
         //Debug.Log($"AFTER: BasicEnemy took {damage} damage from client {clientId}. Remaining health: {currentHealth.Value}");
+        SetHitAnimation();
 
         if (currentHealth.Value <= 0)
         {
-            //Debug.Log("BasicEnemy health reached zero, respawning");
+            Debug.LogError("ApplyDamage_Internal");
             OnDefeated();
         }
     }
@@ -590,8 +586,8 @@ public class BasicEnemy : Enemy, IInteractable
         // Enemy defeated
         if (!IsServer) return;
         // Trigger defeated event
-        OnEnemyDefeated?.Invoke(this);
 
+        enemyCollider.enabled = false; // Disable collider
         targetPlayer = null; // Clear target player
         // Stop patrol behavior
         isPatrolling = false;
@@ -611,81 +607,39 @@ public class BasicEnemy : Enemy, IInteractable
 
         SetVisible(false);
         // Respawn enemy at a new location
-        Vector3 respawnPosition = GetRandomRespawnPosition();
-        Reset(respawnPosition);
+        OnEnemyDefeated?.Invoke(this);
+
     }
 
-    private Vector3 GetRandomRespawnPosition()
-    {
-        // Generate a random position within a defined respawn area
-        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * patrolRadius;
-        randomDirection.y = 0;
-        return spawnPosition + randomDirection;
-    }
 
     public void Reset(Vector3 newPosition)
     {
+        targetPlayer = null; // Clear target player
+        Debug.LogError("BasicEnemy Reset çağrıldı");
         // Reset enemy state
         isDead = false;
-        currentHealth.Value = maxHealth; // Reset to full health
+        currentHealth.Value = maxHealth; // Reset to full hea
 
-        // Reset position
         transform.position = newPosition;
         spawnPosition = newPosition; // Update spawn position
-
         // Enable visuals and movement
         SetVisible(true);
-
+        enemyCollider.enabled = true; // Enable collider
         // Reset animation state
         SetIdleAnimation();
 
-        // Reinitialize NavMeshAgent
-        if (navMeshAgent != null)
-        {
-            if (!navMeshAgent.isOnNavMesh)
-            {
-                Debug.LogError($"NavMeshAgent is not on NavMesh for {gameObject.name}. Attempting to place it.");
-                NavMeshHit hit;
-                if (NavMesh.SamplePosition(newPosition, out hit, 5.0f, NavMesh.AllAreas))
-                {
-                    navMeshAgent.Warp(hit.position);
-                    Debug.Log($"NavMeshAgent successfully placed on NavMesh for {gameObject.name} at {hit.position}.");
-                }
-                else
-                {
-                    Debug.LogError($"Failed to place NavMeshAgent on NavMesh for {gameObject.name}. Using fallback position.");
-                    Vector3 fallbackPosition = spawnPosition; // Use spawn position as fallback
-                    if (NavMesh.SamplePosition(fallbackPosition, out hit, 5.0f, NavMesh.AllAreas))
-                    {
-                        navMeshAgent.Warp(hit.position);
-                        Debug.Log($"NavMeshAgent placed at fallback position for {gameObject.name} at {hit.position}.");
-                    }
-                    else
-                    {
-                        Debug.LogError($"Failed to place NavMeshAgent even at fallback position for {gameObject.name}. Disabling agent.");
-                        navMeshAgent.enabled = false;
-                        return;
-                    }
-                }
-            }
 
-            navMeshAgent.enabled = true;
-            navMeshAgent.isStopped = false;
 
-            // Restart patrol behavior
-            if (enablePatrol && patrolCoroutine == null)
-            {
-                patrolCoroutine = StartCoroutine(PatrolBehavior());
-            }
-        }
-        else if (!navMeshInitialized)
+        navMeshAgent.enabled = true;
+        navMeshAgent.isStopped = false;
+
+        // Restart patrol behavior
+        if (enablePatrol && patrolCoroutine == null)
         {
-            // Attempt to initialize NavMeshAgent if not already initialized
-            if (DynamicNavMeshBuilder.Instance != null && DynamicNavMeshBuilder.Instance.IsNavMeshReady)
-            {
-                InitializeNavMeshAgent();
-            }
+            patrolCoroutine = StartCoroutine(PatrolBehavior());
         }
+
+
     }
 
     public void Interact()

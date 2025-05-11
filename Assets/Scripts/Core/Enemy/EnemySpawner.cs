@@ -152,11 +152,11 @@ public class EnemySpawner : NetworkBehaviour
         Quaternion rotation = Quaternion.identity;
 
         //Düşmanı zemin normali ile hizala
-        Ray ray = new Ray(spawnPoint + Vector3.up * 10f, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayerMask))
-        {
-            rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
-        }
+        // Ray ray = new Ray(spawnPoint + Vector3.up * 10f, Vector3.down);
+        // if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayerMask))
+        // {
+        //     rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
+        // }
 
         try
         {
@@ -184,8 +184,8 @@ public class EnemySpawner : NetworkBehaviour
                 enemyInstance.transform.SetParent(enemyContainer);
             }
 
-            // //Düşmanın yenilgisini dinle
-            // enemyInstance.OnEnemyDefeated += HandleEnemyDefeated;
+            //Düşmanın yenilgisini dinle
+            enemyInstance.OnEnemyDefeated += HandleEnemyDefeated;
 
             return enemyInstance;
         }
@@ -196,20 +196,20 @@ public class EnemySpawner : NetworkBehaviour
         }
     }
 
-    // private void HandleEnemyDefeated(BasicEnemy enemy)
-    // {
-    //     StartCoroutine(RespawnEnemyAfterDelay(enemy));
-    // }
+    private void HandleEnemyDefeated(BasicEnemy enemy)
+    {
+        StartCoroutine(RespawnEnemyAfterDelay(enemy));
+    }
 
-    // private IEnumerator RespawnEnemyAfterDelay(BasicEnemy enemy)
-    // {
-    //     //Yeniden spawn etmeden önce rastgele süre bekle
-    //     yield return new WaitForSeconds(Random.Range(5f, 15f));
-    //     Debug.LogError($"Düşman yenildi, yeniden spawn ediliyor: {enemy.name}");
-    //     //Yeni spawn noktası alıp düşmanı sıfırla
-    //     Vector3 newSpawnPoint = GetSpawnPoint();
-    //     enemy.Reset(newSpawnPoint);
-    // }
+    private IEnumerator RespawnEnemyAfterDelay(BasicEnemy enemy)
+    {
+        //Yeniden spawn etmeden önce rastgele süre bekle
+        yield return new WaitForSeconds(Random.Range(5f, 15f));
+        Debug.LogError($"Düşman yenildi, yeniden spawn ediliyor: {enemy.name}");
+        //Yeni spawn noktası alıp düşmanı sıfırla
+        Vector3 newSpawnPoint = GetSpawnPoint();
+        enemy.Reset(newSpawnPoint);
+    }
 
     private Vector3 GetSpawnPoint()
     {
