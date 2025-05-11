@@ -206,13 +206,14 @@ public class BasicEnemy : Enemy, IInteractable
                 // NavMeshAgent başarıyla başlatıldıktan sonra devriye davranışını başlat
                 if (enablePatrol && patrolCoroutine == null)
                 {
+                    Debug.Log($"BasicEnemy: Devriye davranışı başlatılıyor ({gameObject.name})");
                     patrolCoroutine = StartCoroutine(PatrolBehavior());
                     currentState = EnemyState.Patrolling; // Devriye davranışı başlatıldığında durumu güncelle
                 }
             }
             catch (Exception e)
             {
-                //Debug.LogWarning($"NavMeshAgent başlatılamadı: {e.Message}");
+                Debug.LogWarning($"NavMeshAgent başlatılamadı: {e.Message}");
                 navMeshInitialized = false;
             }
         }
@@ -458,18 +459,20 @@ public class BasicEnemy : Enemy, IInteractable
     private IEnumerator PatrolBehavior()
     {
         isPatrolling = true;
-        //Debug.Log("b 1");
         while (isPatrolling && navMeshAgent != null && navMeshAgent.enabled && !isDead)
         {
-            //Debug.Log("b 2");
+            if (!navMeshAgent.isOnNavMesh)
+            {
+                Debug.LogError($"NavMeshAgent is not on NavMesh during patrol for {gameObject.name}. Exiting patrol.");
+                yield break;
+            }
+
             // Eğer hedef oyuncu yoksa devriye gez
             if (targetPlayer == null)
             {
-                //Debug.Log("b 3");
                 // Henüz bir devriye noktasına gitmiyorsa veya hedefine ulaştıysa
                 if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= patrolPointDistance)
                 {
-                    //Debug.Log("b 4");
                     if (!isWaitingAtPatrolPoint)
                     {
                         isWaitingAtPatrolPoint = true;
@@ -586,10 +589,10 @@ public class BasicEnemy : Enemy, IInteractable
     {
         // Enemy defeated
         if (!IsServer) return;
-
         // Trigger defeated event
         OnEnemyDefeated?.Invoke(this);
 
+        targetPlayer = null; // Clear target player
         // Stop patrol behavior
         isPatrolling = false;
         if (patrolCoroutine != null)
@@ -601,12 +604,12 @@ public class BasicEnemy : Enemy, IInteractable
         // Disable movement and visuals
         if (navMeshAgent != null && navMeshAgent.enabled)
         {
+            Debug.LogError("navmesh kapatıldı");
             navMeshAgent.isStopped = true;
             navMeshAgent.enabled = false;
         }
 
         SetVisible(false);
-
         // Respawn enemy at a new location
         Vector3 respawnPosition = GetRandomRespawnPosition();
         Reset(respawnPosition);
@@ -637,8 +640,35 @@ public class BasicEnemy : Enemy, IInteractable
         SetIdleAnimation();
 
         // Reinitialize NavMeshAgent
-        if (navMeshAgent != null && !navMeshAgent.enabled && navMeshInitialized)
+        if (navMeshAgent != null)
         {
+            if (!navMeshAgent.isOnNavMesh)
+            {
+                Debug.LogError($"NavMeshAgent is not on NavMesh for {gameObject.name}. Attempting to place it.");
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(newPosition, out hit, 5.0f, NavMesh.AllAreas))
+                {
+                    navMeshAgent.Warp(hit.position);
+                    Debug.Log($"NavMeshAgent successfully placed on NavMesh for {gameObject.name} at {hit.position}.");
+                }
+                else
+                {
+                    Debug.LogError($"Failed to place NavMeshAgent on NavMesh for {gameObject.name}. Using fallback position.");
+                    Vector3 fallbackPosition = spawnPosition; // Use spawn position as fallback
+                    if (NavMesh.SamplePosition(fallbackPosition, out hit, 5.0f, NavMesh.AllAreas))
+                    {
+                        navMeshAgent.Warp(hit.position);
+                        Debug.Log($"NavMeshAgent placed at fallback position for {gameObject.name} at {hit.position}.");
+                    }
+                    else
+                    {
+                        Debug.LogError($"Failed to place NavMeshAgent even at fallback position for {gameObject.name}. Disabling agent.");
+                        navMeshAgent.enabled = false;
+                        return;
+                    }
+                }
+            }
+
             navMeshAgent.enabled = true;
             navMeshAgent.isStopped = false;
 

@@ -184,8 +184,8 @@ public class EnemySpawner : NetworkBehaviour
                 enemyInstance.transform.SetParent(enemyContainer);
             }
 
-            //Düşmanın yenilgisini dinle
-            enemyInstance.OnEnemyDefeated += HandleEnemyDefeated;
+            // //Düşmanın yenilgisini dinle
+            // enemyInstance.OnEnemyDefeated += HandleEnemyDefeated;
 
             return enemyInstance;
         }
@@ -196,20 +196,20 @@ public class EnemySpawner : NetworkBehaviour
         }
     }
 
-    private void HandleEnemyDefeated(BasicEnemy enemy)
-    {
-        StartCoroutine(RespawnEnemyAfterDelay(enemy));
-    }
+    // private void HandleEnemyDefeated(BasicEnemy enemy)
+    // {
+    //     StartCoroutine(RespawnEnemyAfterDelay(enemy));
+    // }
 
-    private IEnumerator RespawnEnemyAfterDelay(BasicEnemy enemy)
-    {
-        //Yeniden spawn etmeden önce rastgele süre bekle
-        yield return new WaitForSeconds(Random.Range(5f, 15f));
-
-        //Yeni spawn noktası alıp düşmanı sıfırla
-        Vector3 newSpawnPoint = GetSpawnPoint();
-        enemy.Reset(newSpawnPoint);
-    }
+    // private IEnumerator RespawnEnemyAfterDelay(BasicEnemy enemy)
+    // {
+    //     //Yeniden spawn etmeden önce rastgele süre bekle
+    //     yield return new WaitForSeconds(Random.Range(5f, 15f));
+    //     Debug.LogError($"Düşman yenildi, yeniden spawn ediliyor: {enemy.name}");
+    //     //Yeni spawn noktası alıp düşmanı sıfırla
+    //     Vector3 newSpawnPoint = GetSpawnPoint();
+    //     enemy.Reset(newSpawnPoint);
+    // }
 
     private Vector3 GetSpawnPoint()
     {
