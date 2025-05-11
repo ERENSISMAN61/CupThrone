@@ -166,6 +166,7 @@ public class MeleeCombatController : NetworkBehaviour
     // ÖR. AĞACA HASAR VERİLECEĞİ ZAMAN AĞAÇ PREFABINDE HEALTH SCRIPTI, ONUN DA İÇİNDE INTERACT FONKSİYONU YAZILIYOR
     void AttackInteractable()
     {
+        if (!IsOwner) return;
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit[] hits = Physics.RaycastAll(ray, attackDistance, attackLayer);
 
