@@ -96,7 +96,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
-  mineToAdd: {fileID: 11400000, guid: 7ba4bb70d00866746968c76e9fa0305e, type: 2}
+  mineToAdd: {fileID: 11400000, guid: c8104008fdafec842951766a88b67b39, type: 2}
   quantity: 1
 --- !u!114 &6347616621260853792
 MonoBehaviour:

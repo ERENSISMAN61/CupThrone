@@ -59,28 +59,15 @@ public class ResourceWallet : NetworkBehaviour
                 }
             }
         }
-        else if (itemType == "MineItem")
+        else if (itemType == "CraftingItem")
         {
             // Find the MineItem by name in the Resources or other manager
-            MineItem[] allMineItems = Resources.FindObjectsOfTypeAll<MineItem>();
-            foreach (var mineItem in allMineItems)
+            CraftingItem[] allCraftingItems = Resources.FindObjectsOfTypeAll<CraftingItem>();
+            foreach (var craftingItem in allCraftingItems)
             {
-                if (mineItem.name == itemName)
+                if (craftingItem.name == itemName)
                 {
-                    item = mineItem;
-                    break;
-                }
-            }
-        }
-        else if (itemType == "WoodItem")
-        {
-            // Find the MineItem by name in the Resources or other manager
-            WoodItem[] allWoodItems = Resources.FindObjectsOfTypeAll<WoodItem>();
-            foreach (var woodItem in allWoodItems)
-            {
-                if (woodItem.name == itemName)
-                {
-                    item = woodItem;
+                    item = craftingItem;
                     break;
                 }
             }
@@ -147,32 +134,20 @@ public class ResourceWallet : NetworkBehaviour
                 }
             }
         }
-        else if (itemType == "MineItem")
+        else if (itemType == "CraftingItem")
         {
             // Find the MineItem by name
-            MineItem[] allMineItems = Resources.FindObjectsOfTypeAll<MineItem>();
-            foreach (var mineItem in allMineItems)
+            CraftingItem[] allCraftingItems = Resources.FindObjectsOfTypeAll<CraftingItem>();
+            foreach (var craftingItem in allCraftingItems)
             {
-                if (mineItem.name == itemName)
+                if (craftingItem.name == itemName)
                 {
-                    item = mineItem;
+                    item = craftingItem;
                     break;
                 }
             }
         }
-        else if (itemType == "WoodItem")
-        {
-            // Find the MineItem by name
-            WoodItem[] allWoodItems = Resources.FindObjectsOfTypeAll<WoodItem>();
-            foreach (var woodItem in allWoodItems)
-            {
-                if (woodItem.name == itemName)
-                {
-                    item = woodItem;
-                    break;
-                }
-            }
-        }
+        
 
         // Update the client's local inventory if needed (if not already updated)
         if (item != null && inventory != null && !IsServer)

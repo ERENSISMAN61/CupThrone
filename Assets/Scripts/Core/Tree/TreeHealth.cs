@@ -6,7 +6,7 @@ public class TreeHealth : NetworkBehaviour, IInteractable
 {
     [SerializeField] private int maxHealth = 100;
     private NetworkVariable<int> currentHealth = new NetworkVariable<int>();
-    [SerializeField] private WoodItem woodToAdd; // The item that will be dropped when mine is destroyed
+    [SerializeField] private CraftingItem woodToAdd; // The item that will be dropped when mine is destroyed
     [SerializeField] private int quantity = 1; // How many items to drop
 
 
@@ -99,7 +99,7 @@ public class TreeHealth : NetworkBehaviour, IInteractable
                 if (playerWallet != null)
                 {
                     // Add the mine item to the player's inventory
-                    playerWallet.AddResourceToInventory(woodToAdd.name, quantity, "WoodItem");
+                    playerWallet.AddResourceToInventory(woodToAdd.name, quantity, "CraftingItem");
                     break;
                 }
             }

@@ -9,10 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3db99f6ea98105f4b9a5e187284cbb53, type: 3}
+  m_Script: {fileID: 11500000, guid: 31ff0c8608b51e441913817731798a5c, type: 3}
   m_Name: Stone
   m_EditorClassIdentifier: 
   name: Stone
   icon: {fileID: 21300000, guid: 18dfb3f7ab881c344a5387b6f32e11d2, type: 3}
   maxStackSize: 64
-  useText: Used for crafting stone materials.
+  useText: Crafting stone materials.
