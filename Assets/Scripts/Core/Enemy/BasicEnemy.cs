@@ -198,7 +198,7 @@ public class BasicEnemy : Enemy, IInteractable
                 // NavMeshAgent başarıyla başlatıldıktan sonra devriye davranışını başlat
                 if (enablePatrol && patrolCoroutine == null)
                 {
-                    Debug.Log($"BasicEnemy: Devriye davranışı başlatılıyor ({gameObject.name})");
+                    //Debug.Log($"BasicEnemy: Devriye davranışı başlatılıyor ({gameObject.name})");
                     patrolCoroutine = StartCoroutine(PatrolBehavior());
                     currentState = EnemyState.Patrolling; // Devriye davranışı başlatıldığında durumu güncelle
                 }
@@ -576,7 +576,7 @@ public class BasicEnemy : Enemy, IInteractable
 
         if (currentHealth.Value <= 0)
         {
-            Debug.LogError("ApplyDamage_Internal");
+            //Debug.LogError("ApplyDamage_Internal");
             OnDefeated();
         }
     }
@@ -600,7 +600,7 @@ public class BasicEnemy : Enemy, IInteractable
         // Disable movement and visuals
         if (navMeshAgent != null && navMeshAgent.enabled)
         {
-            Debug.LogError("navmesh kapatıldı");
+            //Debug.LogError("navmesh kapatıldı");
             navMeshAgent.isStopped = true;
             navMeshAgent.enabled = false;
         }
@@ -615,7 +615,7 @@ public class BasicEnemy : Enemy, IInteractable
     public void Reset(Vector3 newPosition)
     {
         targetPlayer = null; // Clear target player
-        Debug.LogError("BasicEnemy Reset çağrıldı");
+        //Debug.LogError("BasicEnemy Reset çağrıldı");
         // Reset enemy state
         isDead = false;
         currentHealth.Value = maxHealth; // Reset to full hea
