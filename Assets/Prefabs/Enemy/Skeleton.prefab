@@ -1401,6 +1401,9 @@ MonoBehaviour:
   attackRange: 2
   attackCooldown: 1.5
   maxHealth: 100
+  currentHealth:
+    m_InternalValue: 100
+  enemyCollider: {fileID: 5562668622315101160}
   chaseTimeout: 2
 --- !u!54 &1861276525604891435
 Rigidbody:
