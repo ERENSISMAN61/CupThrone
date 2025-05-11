@@ -2,6 +2,8 @@
 using System.Text;
 using UnityEngine;
 
+// MATERIAL ITEM
+
 [CreateAssetMenu(fileName = "New Crafting Item", menuName = "Items/Crafting Item")]
 public class CraftingItem : InventoryItem
 {

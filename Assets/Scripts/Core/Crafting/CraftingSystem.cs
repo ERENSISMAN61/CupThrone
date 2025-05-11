@@ -108,6 +108,7 @@ public class CraftingSystem : MonoBehaviour
         Debug.Log(result.quantity == 0 ? "Item başarıyla eklendi." : "Item eklenemedi.");
     }
 
+    // Item'i craft etmek için gereken materyali envanterden bul
     InventoryItem FindItemByName(string itemName)
     {
         // Inventory'nin GetAllSlots metodunu kullanarak itemName ile eşleşen ilk öğeyi bul
@@ -116,10 +117,11 @@ public class CraftingSystem : MonoBehaviour
         return slot != null ? slot.item : null;
     }
 
+    // Item craft edildikten sonra Resources klasöründe craft edilen itemi bul
     InventoryItem FindCraftedItemInResources(string itemName)
     {
         // Resources klasöründe itemName ile eşleşen bir InventoryItem bul
-        var craftedItem = Resources.Load<CraftableItem>($"Items/{itemName}");
+        var craftedItem = Resources.Load<CraftableItem>($"Items/Craftables/{itemName}");
         Debug.Log(craftedItem != null ? $"Resources'ta bulunan item: {craftedItem.name}" : $"Resources'ta {itemName} bulunamadı.");
         return craftedItem;
     }
