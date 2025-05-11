@@ -53,13 +53,13 @@ public class NetworkTerrainManager : NetworkBehaviour
                 mapGenerator = mapGeneratorObj.GetComponent<MapGenerator>();
                 if (mapGenerator != null)
                 {
-                    Debug.Log("MapGenerator found by tag");
+                    //Debug.Log("MapGenerator found by tag");
 
                     // Seed'i uygula
                     if (IsServer && mapGenerator.noiseData != null)
                     {
                         mapGenerator.noiseData.seed = TerrainSeed.Value;
-                        Debug.Log($"Terrain seed applied to MapGenerator: {TerrainSeed.Value}");
+                        //Debug.Log($"Terrain seed applied to MapGenerator: {TerrainSeed.Value}");
                         isNetworkSeedReady = true;
                     }
 
@@ -71,13 +71,13 @@ public class NetworkTerrainManager : NetworkBehaviour
             mapGenerator = FindAnyObjectByType<MapGenerator>();
             if (mapGenerator != null)
             {
-                Debug.Log("MapGenerator found by type");
+                //Debug.Log("MapGenerator found by type");
 
                 // Seed'i uygula
                 if (IsServer && mapGenerator.noiseData != null)
                 {
                     mapGenerator.noiseData.seed = TerrainSeed.Value;
-                    Debug.Log($"Terrain seed applied to MapGenerator: {TerrainSeed.Value}");
+                    //Debug.Log($"Terrain seed applied to MapGenerator: {TerrainSeed.Value}");
                     isNetworkSeedReady = true;
                 }
 
@@ -87,7 +87,7 @@ public class NetworkTerrainManager : NetworkBehaviour
             // Sahne tamamen yüklenmemiş olabilir, biraz daha bekleyelim
             yield return new WaitForSeconds(0.5f);
             retryCount++;
-            Debug.Log($"Waiting for MapGenerator... attempt {retryCount}/{maxRetries}");
+            //Debug.Log($"Waiting for MapGenerator... attempt {retryCount}/{maxRetries}");
         }
 
         Debug.LogError("MapGenerator not found in scene after multiple attempts! Check if MapGenerator exists and is properly tagged.");
@@ -100,7 +100,7 @@ public class NetworkTerrainManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        Debug.Log("NetworkTerrainManager OnNetworkSpawn triggered");
+        //Debug.Log("NetworkTerrainManager OnNetworkSpawn triggered");
 
         if (IsServer)
         {
@@ -111,7 +111,7 @@ public class NetworkTerrainManager : NetworkBehaviour
             {
                 // Eğer özel bir seed değeri ayarlanmışsa onu kullan
                 newSeed = CustomSeed;
-                Debug.Log($"Host using custom terrain seed: {newSeed}");
+                //Debug.Log($"Host using custom terrain seed: {newSeed}");
             }
             else
             {
@@ -119,7 +119,7 @@ public class NetworkTerrainManager : NetworkBehaviour
                 int timeSeed = (int)(DateTime.UtcNow - epochStart).TotalSeconds;
                 UnityEngine.Random.InitState(timeSeed);
                 newSeed = UnityEngine.Random.Range(1, 100000);
-                Debug.Log($"Host generated random terrain seed: {newSeed}");
+                //Debug.Log($"Host generated random terrain seed: {newSeed}");
             }
 
             // Değeri ayarla ve yayımla
@@ -136,7 +136,7 @@ public class NetworkTerrainManager : NetworkBehaviour
         {
             // TerrainSeedValue değerini TerrainSeed.Value'den al
             TerrainSeedValue = TerrainSeed.Value;
-            Debug.Log($"Client received terrain seed: {TerrainSeedValue}");
+            //Debug.Log($"Client received terrain seed: {TerrainSeedValue}");
 
             // TerrainSeedManager'ı güncelle
             TerrainSeedManager.UpdateSeedFromLobby(TerrainSeedValue);
@@ -158,7 +158,7 @@ public class NetworkTerrainManager : NetworkBehaviour
         {
             // Use custom seed if provided
             newSeed = CustomSeed;
-            Debug.Log($"Host using custom terrain seed for lobby: {newSeed}");
+            //Debug.Log($"Host using custom terrain seed for lobby: {newSeed}");
         }
         else
         {
@@ -167,7 +167,7 @@ public class NetworkTerrainManager : NetworkBehaviour
             int timeSeed = (int)(DateTime.UtcNow - epochStart).TotalSeconds;
             UnityEngine.Random.InitState(timeSeed);
             newSeed = UnityEngine.Random.Range(0, 100000);
-            Debug.Log($"Generated random terrain seed for lobby: {newSeed}");
+            //Debug.Log($"Generated random terrain seed for lobby: {newSeed}");
         }
 
         return newSeed;
@@ -182,7 +182,7 @@ public class NetworkTerrainManager : NetworkBehaviour
             return;
         }
 
-        Debug.Log($"Setting terrain seed from lobby: {lobbySeed}");
+        //Debug.Log($"Setting terrain seed from lobby: {lobbySeed}");
 
         // Önce static değeri güncelle
         TerrainSeedValue = lobbySeed;
@@ -207,7 +207,7 @@ public class NetworkTerrainManager : NetworkBehaviour
                     if (fieldInfo != null)
                     {
                         fieldInfo.SetValue(mapGen, lobbySeed);
-                        Debug.Log($"MapGenerator currentSeedValue directly updated to {lobbySeed}");
+                        //Debug.Log($"MapGenerator currentSeedValue directly updated to {lobbySeed}");
                     }
                 }
                 catch (Exception e)
@@ -219,7 +219,7 @@ public class NetworkTerrainManager : NetworkBehaviour
                 if (mapGen.noiseData != null)
                 {
                     mapGen.noiseData.seed = lobbySeed;
-                    Debug.Log($"MapGenerator noiseData seed updated to: {lobbySeed}");
+                    //Debug.Log($"MapGenerator noiseData seed updated to: {lobbySeed}");
                 }
             }
         }
@@ -238,7 +238,7 @@ public class NetworkTerrainManager : NetworkBehaviour
 
     private void OnSeedChanged(int previousValue, int newValue)
     {
-        Debug.Log($"Terrain seed changed from {previousValue} to {newValue}");
+        //Debug.Log($"Terrain seed changed from {previousValue} to {newValue}");
         TerrainSeedValue = newValue;
 
         if (mapGenerator != null && mapGenerator.noiseData != null)
@@ -266,6 +266,6 @@ public class NetworkTerrainManager : NetworkBehaviour
         CustomSeed = seed;
         // Static değeri de güncelle, hemen kullanılabilsin
         TerrainSeedValue = seed;
-        Debug.Log($"Custom terrain seed set: {seed}. This will be used next time a host is created.");
+        //Debug.Log($"Custom terrain seed set: {seed}. This will be used next time a host is created.");
     }
 }

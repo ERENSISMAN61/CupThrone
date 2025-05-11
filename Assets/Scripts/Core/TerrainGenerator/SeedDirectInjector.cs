@@ -45,12 +45,12 @@ public class SeedDirectInjector : MonoBehaviour
                     if (initMethod != null)
                     {
                         initMethod.Invoke(mapGen, null);
-                        Debug.Log($"Called InitializeMapSeed on MapGenerator");
+                        //Debug.Log($"Called InitializeMapSeed on MapGenerator");
                     }
                 }
             }
 
-            Debug.Log($"SeedDirectInjector: Tüm MapGenerator'lar güncellendi, seed: {seedValue}");
+            //Debug.Log($"SeedDirectInjector: Tüm MapGenerator'lar güncellendi, seed: {seedValue}");
         }
     }
 

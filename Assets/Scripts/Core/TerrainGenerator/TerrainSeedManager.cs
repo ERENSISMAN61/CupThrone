@@ -32,7 +32,7 @@ public class TerrainSeedManager : MonoBehaviour
         {
             NetworkTerrainManager.SetCustomSeed(customSeed);
             CurrentSeed = customSeed;
-            Debug.Log($"TerrainSeedManager: Özel seed ayarlandı: {customSeed}");
+            //Debug.Log($"TerrainSeedManager: Özel seed ayarlandı: {customSeed}");
         }
         else
         {
@@ -40,7 +40,7 @@ public class TerrainSeedManager : MonoBehaviour
             int randomSeed = UnityEngine.Random.Range(1, 100000);
             NetworkTerrainManager.SetCustomSeed(randomSeed);
             CurrentSeed = randomSeed;
-            Debug.Log($"TerrainSeedManager: Rastgele seed üretildi: {randomSeed}");
+            //Debug.Log($"TerrainSeedManager: Rastgele seed üretildi: {randomSeed}");
         }
     }
 
@@ -67,7 +67,7 @@ public class TerrainSeedManager : MonoBehaviour
         useCustomSeed = true;
         NetworkTerrainManager.SetCustomSeed(newSeed);
         CurrentSeed = newSeed;
-        Debug.Log($"TerrainSeedManager: Seed manuel olarak değiştirildi: {newSeed}");
+        //Debug.Log($"TerrainSeedManager: Seed manuel olarak değiştirildi: {newSeed}");
     }
 
     // Enable random seed generation
@@ -77,7 +77,7 @@ public class TerrainSeedManager : MonoBehaviour
         int randomSeed = UnityEngine.Random.Range(1, 100000);
         NetworkTerrainManager.SetCustomSeed(randomSeed);
         CurrentSeed = randomSeed;
-        Debug.Log($"TerrainSeedManager: Rastgele seed kullanımına geçildi: {randomSeed}");
+        // Debug.Log($"TerrainSeedManager: Rastgele seed kullanımına geçildi: {randomSeed}");
     }
 
     // Bu metod diğer scriptlerden çağrılabilir
@@ -91,7 +91,7 @@ public class TerrainSeedManager : MonoBehaviour
 
         CurrentSeed = lobbySeed;
         NetworkTerrainManager.SetCustomSeed(lobbySeed);
-        Debug.Log($"TerrainSeedManager: Lobby'den alınan seed değeri ayarlandı: {lobbySeed}");
+        //Debug.Log($"TerrainSeedManager: Lobby'den alınan seed değeri ayarlandı: {lobbySeed}");
     }
 }
 

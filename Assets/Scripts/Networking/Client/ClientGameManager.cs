@@ -102,11 +102,11 @@ public class ClientGameManager : IDisposable
                         if (mapGen.noiseData != null)
                         {
                             mapGen.noiseData.seed = terrainSeed;
-                            Debug.Log($"Client: MapGenerator noiseData seed değeri güncellendi: {terrainSeed}");
+                            //Debug.Log($"Client: MapGenerator noiseData seed değeri güncellendi: {terrainSeed}");
                         }
                     }
 
-                    Debug.Log($"Lobby'den terrain seed alındı: {terrainSeed}");
+                    //Debug.Log($"Lobby'den terrain seed alındı: {terrainSeed}");
                 }
                 else
                 {

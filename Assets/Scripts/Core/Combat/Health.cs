@@ -32,7 +32,7 @@ public class Health : NetworkBehaviour
 
     public void TakeDamage(int damage)
     {
-        Debug.Log("TakeDamage metodu çalıştı.");
+        //Debug.Log("TakeDamage metodu çalıştı.");
         ModifyHealth(-damage);
     }
 
@@ -43,10 +43,10 @@ public class Health : NetworkBehaviour
 
     private void ModifyHealth(int value)
     {
-        Debug.Log("ModifyHealth metodu çalıştı.");
+        //Debug.Log("ModifyHealth metodu çalıştı.");
         if (isDead)
         {
-            Debug.Log("isDead true, return edildi");
+            //Debug.Log("isDead true, return edildi");
             return;
         }
 

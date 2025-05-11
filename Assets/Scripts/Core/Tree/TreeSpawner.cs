@@ -47,7 +47,7 @@ public class TreeSpawner : NetworkBehaviour
 
         // Tüm ağaçlar oluşturuldu, event'i tetikle
         isGenerationComplete = true;
-        Debug.Log("TreeSpawner: All trees spawned successfully!");
+        //Debug.Log("TreeSpawner: All trees spawned successfully!");
         OnTreeGenerationComplete?.Invoke();
     }
 
@@ -69,7 +69,7 @@ public class TreeSpawner : NetworkBehaviour
         if (networkObject != null)
         {
             networkObject.Spawn(true); // Ensure the tree is spawned on the network
-            Debug.Log($"Tree spawned on network at"); //Debug.Log($"Tree spawned on network at {spawnPoint}");
+            //Debug.Log($"Tree spawned on network at"); //Debug.Log($"Tree spawned on network at {spawnPoint}");
         }
         else
         {
@@ -101,7 +101,7 @@ public class TreeSpawner : NetworkBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, terrainLayerMask)) // Check for terrain collision
             {
                 // Always log raycast hits regardless of debug settings
-                Debug.Log($"Food spawn raycast hit: "); //Debug.Log($"Food spawn raycast hit: {hit.collider.name} at {hit.point}");
+                //Debug.Log($"Food spawn raycast hit: "); //Debug.Log($"Food spawn raycast hit: {hit.collider.name} at {hit.point}");
 
                 if (showDebugGizmos)
                 {
@@ -128,7 +128,7 @@ public class TreeSpawner : NetworkBehaviour
             }
             else
             {
-                Debug.Log("Tree raycast did not hit any terrain.");
+                //Debug.Log("Tree raycast did not hit any terrain.");
             }
         }
 

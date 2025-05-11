@@ -11,7 +11,7 @@ public class SeedInput : MonoBehaviour
         if (int.TryParse(seedCodeField.text, out int seed) && seed > 0)
         {
             terrainSeedManager.SetSeed(seed);
-            Debug.Log($"SeedInput: Özel seed ayarlandı: {seed}");
+            //Debug.Log($"SeedInput: Özel seed ayarlandı: {seed}");
         }
         else
         {

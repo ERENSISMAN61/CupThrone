@@ -123,7 +123,7 @@ public class BasicEnemy : Enemy, IInteractable
         // NavMesh hazır olduğu bildirildiğinde NavMeshAgent'ı başlat
         if (navMeshAgent != null && !navMeshAgent.enabled)
         {
-            Debug.Log($"BasicEnemy: NavMesh hazır bildirimi alındı, NavMeshAgent başlatılıyor ({gameObject.name})");
+            //Debug.Log($"BasicEnemy: NavMesh hazır bildirimi alındı, NavMeshAgent başlatılıyor ({gameObject.name})");
             InitializeNavMeshAgent();
         }
     }
@@ -167,7 +167,7 @@ public class BasicEnemy : Enemy, IInteractable
 
     private IEnumerator WaitForNavMeshAndInitialize()
     {
-        Debug.Log($"BasicEnemy: NavMesh'in hazır olması bekleniyor ({gameObject.name})");
+        //Debug.Log($"BasicEnemy: NavMesh'in hazır olması bekleniyor ({gameObject.name})");
 
         // DynamicNavMeshBuilder'ın NavMesh'i oluşturmasını bekle
         int attempts = 0;
@@ -187,7 +187,7 @@ public class BasicEnemy : Enemy, IInteractable
         }
 
         // Maksimum deneme sayısına ulaşıldı, yine de başlatmaya çalış
-        Debug.LogWarning($"BasicEnemy: NavMesh hazır olmasa da NavMeshAgent başlatılmaya çalışılıyor ({gameObject.name})");
+        //Debug.LogWarning($"BasicEnemy: NavMesh hazır olmasa da NavMeshAgent başlatılmaya çalışılıyor ({gameObject.name})");
         InitializeNavMeshAgent();
     }
 
@@ -201,7 +201,7 @@ public class BasicEnemy : Enemy, IInteractable
                 navMeshAgent.enabled = true;
                 navMeshAgent.speed = moveSpeed;
                 navMeshInitialized = true;
-                Debug.Log($"BasicEnemy: NavMeshAgent başarıyla başlatıldı ({gameObject.name})");
+                //Debug.Log($"BasicEnemy: NavMeshAgent başarıyla başlatıldı ({gameObject.name})");
 
                 // NavMeshAgent başarıyla başlatıldıktan sonra devriye davranışını başlat
                 if (enablePatrol && patrolCoroutine == null)
@@ -212,7 +212,7 @@ public class BasicEnemy : Enemy, IInteractable
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"NavMeshAgent başlatılamadı: {e.Message}");
+                //Debug.LogWarning($"NavMeshAgent başlatılamadı: {e.Message}");
                 navMeshInitialized = false;
             }
         }
@@ -220,7 +220,7 @@ public class BasicEnemy : Enemy, IInteractable
 
     private void Update()
     {
-        Debug.Log("curr State:" + currentState);
+        //Debug.Log("curr State:" + currentState);
         // Client'lerde düşmanlar server tarafından kontrol ediliyor
         if (isDead) return;
 
@@ -264,21 +264,21 @@ public class BasicEnemy : Enemy, IInteractable
 
     private void HandleIdleState()
     {
-        Debug.Log("Cc 0 targetPlayer: " + targetPlayer + "\n enablePatrol: " + enablePatrol + "\n patrolCoroutine: " + patrolCoroutine);
+
         if (targetPlayer == null)
         {
-            Debug.Log("Cc 1");
+
             FindNearestPlayer();
         }
 
         if (targetPlayer != null)
         {
-            Debug.Log("Cc 2");
+
             currentState = EnemyState.Chasing;
         }
         else if (enablePatrol && patrolCoroutine == null)
         {
-            Debug.Log("Cc 3");
+
             currentState = EnemyState.Patrolling;
         }
     }
@@ -362,7 +362,7 @@ public class BasicEnemy : Enemy, IInteractable
             SetPunchAnimation();
 
             // Optional: Add feedback like sound or visual effects here
-            Debug.Log($"Player health reduced by {attackDamage} by {gameObject.name}");
+            //Debug.Log($"Player health reduced by {attackDamage} by {gameObject.name}");
         }
     }
 
@@ -389,7 +389,7 @@ public class BasicEnemy : Enemy, IInteractable
 
     private void SetPunchAnimation()
     {
-        Debug.Log("Attacking SetPunchAnimation çağrıldı");
+        //Debug.Log("Attacking SetPunchAnimation çağrıldı");
         if (animator != null)
         {
             animator.SetBool(isIdleParam, false);
@@ -458,18 +458,18 @@ public class BasicEnemy : Enemy, IInteractable
     private IEnumerator PatrolBehavior()
     {
         isPatrolling = true;
-        Debug.Log("b 1");
+        //Debug.Log("b 1");
         while (isPatrolling && navMeshAgent != null && navMeshAgent.enabled && !isDead)
         {
-            Debug.Log("b 2");
+            //Debug.Log("b 2");
             // Eğer hedef oyuncu yoksa devriye gez
             if (targetPlayer == null)
             {
-                Debug.Log("b 3");
+                //Debug.Log("b 3");
                 // Henüz bir devriye noktasına gitmiyorsa veya hedefine ulaştıysa
                 if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= patrolPointDistance)
                 {
-                    Debug.Log("b 4");
+                    //Debug.Log("b 4");
                     if (!isWaitingAtPatrolPoint)
                     {
                         isWaitingAtPatrolPoint = true;
@@ -556,7 +556,7 @@ public class BasicEnemy : Enemy, IInteractable
     {
         if (!IsServer)
         {
-            Debug.LogWarning("ApplyDamage called on client! This shouldn't happen.");
+            //Debug.LogWarning("ApplyDamage called on client! This shouldn't happen.");
             return;
         }
 
@@ -564,20 +564,20 @@ public class BasicEnemy : Enemy, IInteractable
         {
             if (Time.time - lastDamageTime < damageTimeout)
             {
-                Debug.Log($"Damage cooldown active for client {clientId}. Ignoring this hit.");
+                //Debug.Log($"Damage cooldown active for client {clientId}. Ignoring this hit.");
                 return;
             }
         }
 
         clientDamageTimestamps[clientId] = Time.time;
 
-        Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
+        //Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
         currentHealth.Value -= damage;
-        Debug.Log($"AFTER: BasicEnemy took {damage} damage from client {clientId}. Remaining health: {currentHealth.Value}");
+        //Debug.Log($"AFTER: BasicEnemy took {damage} damage from client {clientId}. Remaining health: {currentHealth.Value}");
 
         if (currentHealth.Value <= 0)
         {
-            Debug.Log("BasicEnemy health reached zero, respawning");
+            //Debug.Log("BasicEnemy health reached zero, respawning");
             OnDefeated();
         }
     }
@@ -660,18 +660,18 @@ public class BasicEnemy : Enemy, IInteractable
 
     public void Interact()
     {
-        Debug.Log($"BasicEnemy Interact called. IsServer: {IsServer}, IsClient: {IsClient}, IsHost: {IsHost}");
+        //Debug.Log($"BasicEnemy Interact called. IsServer: {IsServer}, IsClient: {IsClient}, IsHost: {IsHost}");
 
         // If we're on a dedicated client, we should call the ServerRpc
         if (IsClient && !IsHost)
         {
-            Debug.Log("CLIENT MODE: Sending damage request to server");
+            //Debug.Log("CLIENT MODE: Sending damage request to server");
             TakeDamageServerRpc(25, NetworkManager.Singleton.LocalClientId);
         }
         // If we're on the server (or host), apply damage directly
         else if (IsServer)
         {
-            Debug.Log("SERVER MODE: Applying damage directly");
+            //Debug.Log("SERVER MODE: Applying damage directly");
             // For server, use server's client ID (usually 0)
             ApplyDamage_Internal(25, NetworkManager.Singleton.LocalClientId);
         }

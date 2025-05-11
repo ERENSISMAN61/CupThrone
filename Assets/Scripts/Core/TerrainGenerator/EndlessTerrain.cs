@@ -79,7 +79,7 @@ public class EndlessTerrain : MonoBehaviour
             }
 
             // Progres logla
-            Debug.Log($"Terrain generation progress: {loadedChunkCount}/{initialChunkCount} chunks loaded");
+            //Debug.Log($"Terrain generation progress: {loadedChunkCount}/{initialChunkCount} chunks loaded");
 
             yield return new WaitForSeconds(0.5f);
         }
@@ -87,7 +87,7 @@ public class EndlessTerrain : MonoBehaviour
         // Tüm terrain chunk'lar oluşturuldu, MapGenerator'a bildir
         if (!hasNotifiedMapGenerator && mapGenerator != null)
         {
-            Debug.Log("All terrain chunks loaded. Notifying MapGenerator.");
+            //Debug.Log("All terrain chunks loaded. Notifying MapGenerator.");
             mapGenerator.NotifyAllChunksCreated();
             hasNotifiedMapGenerator = true;
         }

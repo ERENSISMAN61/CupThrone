@@ -81,7 +81,7 @@ public class ProjectileLauncher : NetworkBehaviour
 
     private void HandleFire(bool isPressed)
     {
-        Debug.Log($"HandleFire: isPressed={isPressed}");
+        //Debug.Log($"HandleFire: isPressed={isPressed}");
 
         if (!handItems.GetHasBowInHand()) return;// yay elinde değilse işlem yapma
 
@@ -91,7 +91,7 @@ public class ProjectileLauncher : NetworkBehaviour
             if (isResetting)
             {
                 isFireButtonHeldDuringReset = true;
-                Debug.Log("Ateş düğmesi reset sırasında basılı tutuluyor");
+                //Debug.Log("Ateş düğmesi reset sırasında basılı tutuluyor");
             }
             StartCharging();
         }
@@ -108,11 +108,11 @@ public class ProjectileLauncher : NetworkBehaviour
         // Reset animasyonu sırasında şarj etmeyi engelle ama basılı tutulduğunu kaydet
         if (isResetting)
         {
-            Debug.Log("Yay resetleniyor, şarj başlatılamaz!");
+            //Debug.Log("Yay resetleniyor, şarj başlatılamaz!");
             return;
         }
 
-        Debug.Log("StartCharging: Başladı");
+        //Debug.Log("StartCharging: Başladı");
         isCharging = true;
     }
 
@@ -122,7 +122,7 @@ public class ProjectileLauncher : NetworkBehaviour
         if (!isCharging) return;
 
         isCharging = false;
-        Debug.Log($"StopCharging: Şarj değeri = {chargeValue}");
+        //Debug.Log($"StopCharging: Şarj değeri = {chargeValue}");
 
         // Kameranın baktığı yönü al
         Vector3 cameraDirection = playerCamera != null ? playerCamera.transform.forward : projectileSpawnPoint.forward;
@@ -135,7 +135,7 @@ public class ProjectileLauncher : NetworkBehaviour
                 // Şarj değerine göre hız ayarla (1.5x - 3x arası)
                 localSpeedMultiplier = 1f + (chargeValue / maxChargeValue * 2f);
 
-                Debug.Log($"Ok atılıyor! Şarj: {chargeValue}, Yön: {cameraDirection}, SpeedMultiplier: {localSpeedMultiplier}");
+                //Debug.Log($"Ok atılıyor! Şarj: {chargeValue}, Yön: {cameraDirection}, SpeedMultiplier: {localSpeedMultiplier}");
 
                 // ServerRpc'ye hem pozisyon, yön hem de speedMultiplier gönder
                 SpawnServerProjectileServerRpc(projectileSpawnPoint.position, cameraDirection, localSpeedMultiplier);
@@ -148,16 +148,16 @@ public class ProjectileLauncher : NetworkBehaviour
             }
             else
             {
-                Debug.Log("Yeterli ok yok!");
+                //Debug.Log("Yeterli ok yok!");
             }
         }
         else if (!canFire)
         {
-            Debug.Log("Yay henüz hazır değil!");
+            //Debug.Log("Yay henüz hazır değil!");
         }
         else
         {
-            Debug.Log($"Atış başarısız. Şarj: {chargeValue}, CanFire: {canFire}");
+            //Debug.Log($"Atış başarısız. Şarj: {chargeValue}, CanFire: {canFire}");
         }
 
         // Şarj değerini sıfırla
@@ -203,12 +203,12 @@ public class ProjectileLauncher : NetworkBehaviour
 
                 // Yay reset animasyonu tamamlandığında ateş etmeyi tekrar aktif et
                 canFire = true;
-                Debug.Log("Yay hazır! Tekrar ateş edilebilir.");
+                //Debug.Log("Yay hazır! Tekrar ateş edilebilir.");
 
                 // Reset tamamlandığında düğme hala basılı tutuluyorsa şarj etmeye başla
                 if (isFireButtonHeldDuringReset)
                 {
-                    Debug.Log("Düğme hala basılı, şarj başlatılıyor!");
+                    //Debug.Log("Düğme hala basılı, şarj başlatılıyor!");
                     isCharging = true;
                     isFireButtonHeldDuringReset = false; // İşlemi gerçekleştirdikten sonra bayrağı sıfırla
                 }
@@ -224,7 +224,7 @@ public class ProjectileLauncher : NetworkBehaviour
                 playerCamera = Camera.main;
                 if (playerCamera == null)
                 {
-                    Debug.LogWarning("Kamera bulunamadı!");
+                    //Debug.LogWarning("Kamera bulunamadı!");
                 }
             }
 
@@ -236,7 +236,7 @@ public class ProjectileLauncher : NetworkBehaviour
 
             if (chargeValue % 1f < 0.01f)
             {
-                Debug.Log($"Şarj ediliyor: {Mathf.Floor(chargeValue)}/{maxChargeValue}");
+                //Debug.Log($"Şarj ediliyor: {Mathf.Floor(chargeValue)}/{maxChargeValue}");
             }
         }
     }

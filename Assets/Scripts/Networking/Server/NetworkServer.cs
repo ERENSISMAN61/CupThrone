@@ -36,7 +36,7 @@ public class NetworkServer : IDisposable
         response.Approved = true;
         response.CreatePlayerObject = true;
 
-        Debug.Log(userData.userName + "Joined!");
+        //Debug.Log(userData.userName + "Joined!");
     }
 
     private void OnNetworkReady()

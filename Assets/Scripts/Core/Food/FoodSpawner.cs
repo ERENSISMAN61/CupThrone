@@ -50,7 +50,7 @@ public class FoodSpawner : NetworkBehaviour
         Ray ray = new Ray(spawnPoint + Vector3.up * 10f, Vector3.down); // Start raycast slightly above the spawn point
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayerMask))
         {
-            Debug.Log($"Food normal raycast hit:"); //Debug.Log($"Food normal raycast hit: {hit.collider.name} at {hit.point}");
+            //Debug.Log($"Food normal raycast hit:"); //Debug.Log($"Food normal raycast hit: {hit.collider.name} at {hit.point}");
             rotation = Quaternion.FromToRotation(Vector3.up, hit.normal); // Align rotation with terrain normal
         }
 
@@ -95,7 +95,7 @@ public class FoodSpawner : NetworkBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, terrainLayerMask)) // Check for terrain collision
             {
                 // Always log raycast hits regardless of debug settings
-                Debug.Log($"Food spawn raycast hit: "); //Debug.Log($"Food spawn raycast hit: {hit.collider.name} at {hit.point}");
+                //Debug.Log($"Food spawn raycast hit: "); //Debug.Log($"Food spawn raycast hit: {hit.collider.name} at {hit.point}");
 
                 if (showDebugGizmos)
                 {
@@ -122,7 +122,7 @@ public class FoodSpawner : NetworkBehaviour
             }
             else
             {
-                Debug.Log("Food raycast did not hit any terrain.");
+                //Debug.Log("Food raycast did not hit any terrain.");
             }
         }
 

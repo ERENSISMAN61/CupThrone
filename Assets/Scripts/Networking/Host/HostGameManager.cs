@@ -43,7 +43,7 @@ public class HostGameManager : IDisposable
             joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             //await, async fonksiyonlarının çalışmasını beklemesi gerektiğini belirtir.
 
-            Debug.Log($"Join Code: {joinCode}");
+            //Debug.Log($"Join Code: {joinCode}");
         }
         catch (RelayServiceException e)
         {
@@ -90,12 +90,12 @@ public class HostGameManager : IDisposable
             if (TerrainSeedManager.CurrentSeed > 0)
             {
                 lobbyTerrainSeed = TerrainSeedManager.CurrentSeed;
-                Debug.Log($"HostGameManager: TerrainSeedManager'dan seed alındı: {lobbyTerrainSeed}");
+                //Debug.Log($"HostGameManager: TerrainSeedManager'dan seed alındı: {lobbyTerrainSeed}");
             }
             else
             {
                 lobbyTerrainSeed = NetworkTerrainManager.GenerateSeedForNewLobby();
-                Debug.Log($"HostGameManager: Yeni seed üretildi: {lobbyTerrainSeed}");
+                //Debug.Log($"HostGameManager: Yeni seed üretildi: {lobbyTerrainSeed}");
 
                 // TerrainSeedManager'ı da güncelle
                 TerrainSeedManager.UpdateSeedFromLobby(lobbyTerrainSeed);
@@ -108,7 +108,7 @@ public class HostGameManager : IDisposable
                 if (mapGen.noiseData != null)
                 {
                     mapGen.noiseData.seed = lobbyTerrainSeed;
-                    Debug.Log($"Host: MapGenerator noiseData seed değeri güncellendi: {lobbyTerrainSeed}");
+                    //Debug.Log($"Host: MapGenerator noiseData seed değeri güncellendi: {lobbyTerrainSeed}");
                 }
             }
 
@@ -188,12 +188,12 @@ public class HostGameManager : IDisposable
                 {
                     // CustomSeed zaten NetworkTerrainManager.SetCustomSeed() ile ayarlandı
                     // bu yüzden tekrar ayarlamaya gerek yok
-                    Debug.Log($"NetworkTerrainManager CustomSeed set to {NetworkTerrainManager.CustomSeed} before spawn");
+                    //Debug.Log($"NetworkTerrainManager CustomSeed set to {NetworkTerrainManager.CustomSeed} before spawn");
                 }
 
                 // Şimdi spawn et
                 terrainManager.GetComponent<NetworkObject>().Spawn();
-                Debug.Log("NetworkTerrainManager spawned successfully");
+                //Debug.Log("NetworkTerrainManager spawned successfully");
 
                 // Sahne tam olarak yüklenmesi için biraz bekle
                 await Task.Delay(200);

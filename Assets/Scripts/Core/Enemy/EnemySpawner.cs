@@ -46,12 +46,12 @@ public class EnemySpawner : NetworkBehaviour
         if (!IsServer)
         {
             // Client ise sadece hazır durumunu güncelle, düşman spawn etme
-            Debug.Log("EnemySpawner (Client): NavMesh hazır bildirimi alındı, ancak client düşman oluşturmaz");
+            //Debug.Log("EnemySpawner (Client): NavMesh hazır bildirimi alındı, ancak client düşman oluşturmaz");
             isNavMeshReady = true;
             return;
         }
 
-        Debug.Log("EnemySpawner (Server): NavMesh hazır olduğu bildirildi, düşmanlar oluşturulmaya başlanıyor...");
+        //Debug.Log("EnemySpawner (Server): NavMesh hazır olduğu bildirildi, düşmanlar oluşturulmaya başlanıyor...");
         isNavMeshReady = true;
 
         // Eğer NetworkBehaviour olarak çoktan spawn olduysa, düşmanları başlat
@@ -66,7 +66,7 @@ public class EnemySpawner : NetworkBehaviour
         // Host/Server değilse, düşman oluşturmayı atla
         if (!IsServer)
         {
-            Debug.Log("EnemySpawner: Client olduğu için düşmanlar oluşturulmayacak.");
+            //Debug.Log("EnemySpawner: Client olduğu için düşmanlar oluşturulmayacak.");
             return;
         }
 
@@ -77,18 +77,18 @@ public class EnemySpawner : NetworkBehaviour
         }
         else
         {
-            Debug.Log("EnemySpawner: NavMesh'in hazır olması bekleniyor...");
+            //Debug.Log("EnemySpawner: NavMesh'in hazır olması bekleniyor...");
 
             // DynamicNavMeshBuilder yoksa veya çalışmıyorsa
             if (DynamicNavMeshBuilder.Instance == null)
             {
-                Debug.LogWarning("EnemySpawner: DynamicNavMeshBuilder bulunamadı! Bir süre bekleyip düşmanları oluşturmaya deneyecek.");
+                //Debug.LogWarning("EnemySpawner: DynamicNavMeshBuilder bulunamadı! Bir süre bekleyip düşmanları oluşturmaya deneyecek.");
                 StartCoroutine(FallbackSpawnWithDelay(10f)); // 10 saniye bekle ve düşmanları oluştur
             }
             else if (DynamicNavMeshBuilder.Instance.IsNavMeshReady)
             {
                 // DynamicNavMeshBuilder instance'ı event'i tetiklemeden önce hazırsa
-                Debug.Log("EnemySpawner: NavMesh zaten hazır, düşmanlar oluşturulmaya başlanıyor...");
+                //Debug.Log("EnemySpawner: NavMesh zaten hazır, düşmanlar oluşturulmaya başlanıyor...");
                 isNavMeshReady = true;
                 StartCoroutine(DelayedSpawnEnemies());
             }
@@ -102,7 +102,7 @@ public class EnemySpawner : NetworkBehaviour
 
         if (!isSpawning && !isNavMeshReady)
         {
-            Debug.LogWarning("EnemySpawner: NavMesh'in hazır olması beklenemedi, düşmanlar yine de oluşturuluyor...");
+            //Debug.LogWarning("EnemySpawner: NavMesh'in hazır olması beklenemedi, düşmanlar yine de oluşturuluyor...");
             isNavMeshReady = true;
             StartCoroutine(DelayedSpawnEnemies());
         }
@@ -115,7 +115,7 @@ public class EnemySpawner : NetworkBehaviour
         // İlk spawn için kısa bir gecikme
         yield return new WaitForSeconds(initialSpawnDelay);
 
-        Debug.Log("EnemySpawner: Düşmanlar oluşturuluyor...");
+        //Debug.Log("EnemySpawner: Düşmanlar oluşturuluyor...");
 
         // Düşmanın yarıçapını belirleme
         if (enemyPrefab.GetComponent<CapsuleCollider>() != null)
@@ -143,7 +143,7 @@ public class EnemySpawner : NetworkBehaviour
         }
         isSpawning = false;
 
-        Debug.Log($"EnemySpawner: Toplam {spawnedEnemies.Count} düşman başarıyla oluşturuldu!");
+        //Debug.Log($"EnemySpawner: Toplam {spawnedEnemies.Count} düşman başarıyla oluşturuldu!");
     }
 
     private BasicEnemy SpawnEnemy()
@@ -171,7 +171,7 @@ public class EnemySpawner : NetworkBehaviour
             if (networkObject != null)
             {
                 networkObject.Spawn();
-                Debug.Log("Düşman ağda oluşturuldu:"); //Debug.Log($"Düşman ağda oluşturuldu: {spawnPoint}");
+                //Debug.Log("Düşman ağda oluşturuldu:"); //Debug.Log($"Düşman ağda oluşturuldu: {spawnPoint}");
             }
             else
             {

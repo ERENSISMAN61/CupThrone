@@ -16,19 +16,19 @@ public class HoverInfoPopup : MonoBehaviour
     private void Start()
     {
         popupCanvas = popupCanvasObject.GetComponent<Canvas>();
-        Debug.Log("HoverInfoPopup initialized.");
+        //Debug.Log("HoverInfoPopup initialized.");
     }
 
     private void Update()
     {
         FollowCursor();
-        Debug.Log("HoverInfoPopup: Following cursor.");
+        //Debug.Log("HoverInfoPopup: Following cursor.");
     }
 
     public void HideInfo()
     {
         popupCanvasObject.SetActive(false);
-        Debug.Log("HoverInfoPopup: Info hidden.");
+        //Debug.Log("HoverInfoPopup: Info hidden.");
     }
 
     private void FollowCursor()
@@ -55,7 +55,7 @@ public class HoverInfoPopup : MonoBehaviour
         }
         popupObject.transform.position = newPos;
 
-        Debug.Log($"HoverInfoPopup: Cursor position updated to {newPos}.");
+        //Debug.Log($"HoverInfoPopup: Cursor position updated to {newPos}.");
     }
 
     public void DisplayInfo(HotbarItem infoItem)
@@ -71,6 +71,6 @@ public class HoverInfoPopup : MonoBehaviour
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(popupObject);
 
-        Debug.Log($"HoverInfoPopup: Displaying info for item {infoItem.ColouredName}.");
+        //Debug.Log($"HoverInfoPopup: Displaying info for item {infoItem.ColouredName}.");
     }
 }

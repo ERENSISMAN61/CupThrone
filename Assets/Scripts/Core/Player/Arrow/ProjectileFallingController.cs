@@ -53,14 +53,14 @@ public class ProjectileFallingController : MonoBehaviour
         if (isRising && yVelocity <= velocityThreshold)
         {
             isRising = false;
-            Debug.Log("Ok tepe noktasına ulaştı!");
+            //Debug.Log("Ok tepe noktasına ulaştı!");
         }
 
         // Düşme durumunda
         if (!isFalling && yVelocity < -velocityThreshold)
         {
             isFalling = true;
-            Debug.Log("Ok düşmeye başladı!");
+            //Debug.Log("Ok düşmeye başladı!");
         }
 
         // Rotasyonu güncelle

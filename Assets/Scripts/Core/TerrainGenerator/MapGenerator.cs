@@ -116,7 +116,7 @@ public class MapGenerator : MonoBehaviour
         }
 
         // Loglama ekle - ne zaman hangi seed değeriyle thread başlatıldı
-        Debug.Log($"Thread başlatılıyor, seed: {seedForThread}, mevcut seed değeri: {currentSeedValue}");
+        //Debug.Log($"Thread başlatılıyor, seed: {seedForThread}, mevcut seed değeri: {currentSeedValue}");
 
         ThreadStart threadStart = delegate
         {
@@ -186,7 +186,7 @@ public class MapGenerator : MonoBehaviour
         int seedToUse = threadSeedValue;
 
         // Kapsamlı log
-        Debug.Log($"GenerateMapData(thread) - threadSeedValue: {threadSeedValue}, lastRequested: {lastRequestedSeedForThread}, current: {currentSeedValue}");
+        //Debug.Log($"GenerateMapData(thread) - threadSeedValue: {threadSeedValue}, lastRequested: {lastRequestedSeedForThread}, current: {currentSeedValue}");
 
         // Hata kontrolü
         if (seedToUse <= 0)
@@ -236,7 +236,7 @@ public class MapGenerator : MonoBehaviour
             seedToUse = currentSeedValue;
         }
 
-        Debug.Log($"GenerateMapData(main) - currentSeedValue: {currentSeedValue}, TerrainSeedManager: {TerrainSeedManager.CurrentSeed}, NetworkTerrainManager: {NetworkTerrainManager.TerrainSeedValue}");
+        //Debug.Log($"GenerateMapData(main) - currentSeedValue: {currentSeedValue}, TerrainSeedManager: {TerrainSeedManager.CurrentSeed}, NetworkTerrainManager: {NetworkTerrainManager.TerrainSeedValue}");
 
         if (seedToUse <= 0)
         {
@@ -314,7 +314,7 @@ public class MapGenerator : MonoBehaviour
     {
         // Client bağlandığında seed değerini güncelle
         UpdateCurrentSeedFromNetworkManager();
-        Debug.Log($"Client bağlandı (ID: {clientId}), seed güncellendi: {currentSeedValue}");
+        //Debug.Log($"Client bağlandı (ID: {clientId}), seed güncellendi: {currentSeedValue}");
     }
 
     void OnDestroy()
@@ -342,7 +342,7 @@ public class MapGenerator : MonoBehaviour
         else if (NetworkTerrainManager.TerrainSeedValue > 0)
         {
             directNetworkSeed = NetworkTerrainManager.TerrainSeedValue;
-            Debug.Log($"Direct NetworkTerrainManager seed: {directNetworkSeed}");
+            //Debug.Log($"Direct NetworkTerrainManager seed: {directNetworkSeed}");
         }
 
         // NoiseData kontrolü (en az öncelikli)
@@ -368,12 +368,12 @@ public class MapGenerator : MonoBehaviour
             {
                 currentSeedValue = noiseDataSeed;
                 seedInitialized = true;
-                Debug.Log($"UpdateCurrentSeedFromNetworkManager - NoiseData seed kullanıldı: {currentSeedValue}");
+                //Debug.Log($"UpdateCurrentSeedFromNetworkManager - NoiseData seed kullanıldı: {currentSeedValue}");
             }
             // En son varsayılan değer (12345) kullan, ancak uyarı ver
             else if (!seedInitialized)
             {
-                Debug.LogWarning($"Hiçbir seed kaynağı bulunamadı, varsayılan değer kullanılıyor: {currentSeedValue}");
+                //Debug.LogWarning($"Hiçbir seed kaynağı bulunamadı, varsayılan değer kullanılıyor: {currentSeedValue}");
                 seedInitialized = true;
             }
 
@@ -396,22 +396,22 @@ public class MapGenerator : MonoBehaviour
         var tsm = FindFirstObjectByType<TerrainSeedManager>();
         var ntm = FindFirstObjectByType<NetworkTerrainManager>();
 
-        Debug.Log($"InitializeMapSeed - currentSeedValue: {currentSeedValue}");
-        Debug.Log($"InitializeMapSeed - TerrainSeedManager.CurrentSeed: {TerrainSeedManager.CurrentSeed}");
-        Debug.Log($"InitializeMapSeed - NetworkTerrainManager.TerrainSeedValue: {NetworkTerrainManager.TerrainSeedValue}");
+        //Debug.Log($"InitializeMapSeed - currentSeedValue: {currentSeedValue}");
+        //Debug.Log($"InitializeMapSeed - TerrainSeedManager.CurrentSeed: {TerrainSeedManager.CurrentSeed}");
+        //Debug.Log($"InitializeMapSeed - NetworkTerrainManager.TerrainSeedValue: {NetworkTerrainManager.TerrainSeedValue}");
 
         if (tsm != null)
-            Debug.Log($"TerrainSeedManager bulundu");
+            //Debug.Log($"TerrainSeedManager bulundu");
 
-        if (ntm != null)
-            Debug.Log($"NetworkTerrainManager bulundu");
+            if (ntm != null)
+                //Debug.Log($"NetworkTerrainManager bulundu");
 
-        // NoiseData'ya seed değerini set et
-        if (noiseData != null)
-        {
-            noiseData.seed = currentSeedValue;
-            Debug.Log($"NoiseData seed InitializeMapSeed'de güncellendi: {currentSeedValue}");
-        }
+                // NoiseData'ya seed değerini set et
+                if (noiseData != null)
+                {
+                    noiseData.seed = currentSeedValue;
+                    //Debug.Log($"NoiseData seed InitializeMapSeed'de güncellendi: {currentSeedValue}");
+                }
     }
 
     // Lobby'den direkt olarak seed değerini almaya çalışan yeni metod
@@ -433,7 +433,7 @@ public class MapGenerator : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"Lobby seed değeri alınırken hata: {e.Message}");
+            //Debug.LogWarning($"Lobby seed değeri alınırken hata: {e.Message}");
         }
 
         return -1;
@@ -443,7 +443,7 @@ public class MapGenerator : MonoBehaviour
     private void TerrainGenerationCompleted()
     {
         isGenerationComplete = true;
-        Debug.Log("MapGenerator: Terrain generation completed");
+        //Debug.Log("MapGenerator: Terrain generation completed");
 
         // Event'i tetikle
         OnTerrainGenerationComplete?.Invoke();

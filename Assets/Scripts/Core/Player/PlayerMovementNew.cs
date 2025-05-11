@@ -59,11 +59,11 @@ public class PlayerMovementNew : NetworkBehaviour
         if (isGrounded && !isJumping)
         {
             isJumping = true;
-            networkIsJumping.Value = true;           
-            Debug.Log("Jumping - setting IsJumping to true");
+            networkIsJumping.Value = true;
+            //Debug.Log("Jumping - setting IsJumping to true");
 
-            Jump();                      
-            Debug.Log("Jump function called");
+            Jump();
+            //Debug.Log("Jump function called");
         }
     }
 
@@ -91,7 +91,7 @@ public class PlayerMovementNew : NetworkBehaviour
 
             if (isGrounded)
             {
-//                Debug.Log("Player is grounded - applying ground drag");
+                //                Debug.Log("Player is grounded - applying ground drag");
                 rb.linearDamping = groundDrag;
             }
             else
@@ -112,10 +112,10 @@ public class PlayerMovementNew : NetworkBehaviour
 
             // Calculate forward velocity component for animation
             Vector3 horizontalVel = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
-            
+
             // Project velocity onto forward direction to get only forward/backward component
             float forwardSpeed = Vector3.Dot(horizontalVel, bodyTransform.forward);
-            
+
             // Update network variables for animation
             networkSpeed.Value = forwardSpeed;
             networkDirection.Value = movementInput.x;
@@ -136,7 +136,7 @@ public class PlayerMovementNew : NetworkBehaviour
     {
         networkIsJumping.Value = false;
         isJumping = false;
-        Debug.Log("Reset jump state");
+        //Debug.Log("Reset jump state");
     }
 
     private void UpdateAnimatorParameters()
@@ -148,11 +148,11 @@ public class PlayerMovementNew : NetworkBehaviour
             animator.SetBool("IsGrounded", networkIsGrounded.Value);
             animator.SetBool("IsJumping", networkIsJumping.Value);
             animator.SetBool("IsSprinting", networkIsSprinting.Value);
-            
+
             // Log animation parameters
             if (networkIsJumping.Value)
             {
-                Debug.Log($"Animation parameters: IsJumping={networkIsJumping.Value}, IsGrounded={networkIsGrounded.Value}");
+                //Debug.Log($"Animation parameters: IsJumping={networkIsJumping.Value}, IsGrounded={networkIsGrounded.Value}");
             }
         }
     }
@@ -177,11 +177,11 @@ public class PlayerMovementNew : NetworkBehaviour
     private void SpeedControl()
     {
         Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z); // Y eksenindeki hızı sıfırla
-        
+
         // Only apply sprint speed limit when moving forward
         bool canSprint = movementInput.y > 0;
         float maxSpeed = (isSprinting && canSprint) ? movementSpeed * sprintSpeedMultiplier : movementSpeed;
-        
+
         if (flatVel.magnitude > maxSpeed)
         {
             Vector3 limitedVel = flatVel.normalized * maxSpeed;
@@ -196,14 +196,14 @@ public class PlayerMovementNew : NetworkBehaviour
 
         // Apply jump force
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        
+
         // Ensure the jump animation is triggered correctly
         if (animator != null)
         {
             // Set both the trigger and the bool parameter
             animator.SetTrigger("Jump");
             animator.SetBool("IsJumping", true);
-            Debug.Log("Jump animation triggered");
+            //Debug.Log("Jump animation triggered");
         }
         else
         {

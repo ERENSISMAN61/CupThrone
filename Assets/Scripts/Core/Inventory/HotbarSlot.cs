@@ -6,7 +6,7 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
 {
     [SerializeField] private Inventory inventory = null;
     [SerializeField] private TextMeshProUGUI itemQuantityText = null;
-    private HotbarItem slotItem = null; 
+    private HotbarItem slotItem = null;
 
     public override HotbarItem SlotItem
     {
@@ -16,15 +16,15 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
 
     public bool AddItem(HotbarItem itemToAdd)
     {
-        if (SlotItem != null) 
+        if (SlotItem != null)
         {
-            Debug.Log($"Hotbar slot {SlotIndex} is already occupied.");
+            //   Debug.Log($"Hotbar slot {SlotIndex} is already occupied.");
             return false; // Slot is already occupied
         }
 
         SlotItem = itemToAdd;
-        
-        Debug.Log($"Added {itemToAdd.Name} to hotbar slot {SlotIndex}");
+
+        //Debug.Log($"Added {itemToAdd.Name} to hotbar slot {SlotIndex}");
         return true;
     }
 
@@ -59,7 +59,7 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
 
     public override void UpdateSlotUI()
     {
-        if(SlotItem == null)
+        if (SlotItem == null)
         {
             EnableSlotUI(false);
             return;
@@ -67,7 +67,7 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
 
         itemIconImage.sprite = SlotItem.Icon;
 
-        Debug.Log($"Hotbar slot {SlotIndex} updated with item: {SlotItem.Name}");
+        //Debug.Log($"Hotbar slot {SlotIndex} updated with item: {SlotItem.Name}");
 
         EnableSlotUI(true);
 
@@ -78,12 +78,12 @@ public class HotbarSlot : ItemSlotUI, IDropHandler
     {
         if (SlotItem is InventoryItem inventoryItem)
         {
-            if(inventory.ItemContainer.HasItem(inventoryItem))
+            if (inventory.ItemContainer.HasItem(inventoryItem))
             {
                 int quantityCount = inventory.ItemContainer.GetTotalQuantity(inventoryItem);
                 itemQuantityText.text = quantityCount > 1 ? quantityCount.ToString() : " ";
             }
-            else 
+            else
             {
                 SlotItem = null;
             }
