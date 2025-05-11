@@ -30,8 +30,9 @@ public class BasicEnemy : Enemy, IInteractable
     [SerializeField] private int maxHealth = 100; // Maximum health of the enemy
     [SerializeField] private NetworkVariable<int> currentHealth = new NetworkVariable<int>(100); // Networked health variable
     [SerializeField] private Collider enemyCollider; // Enemy'nin collider bileşeni
-
+    [SerializeField] private float damageDelay = 0.5f; // Hasar verme gecikmesi
     [SerializeField] private float attackthresholdOffset = 0.1f;
+
     private Dictionary<ulong, float> clientDamageTimestamps = new Dictionary<ulong, float>();
     private float damageTimeout = 0.5f; // Cooldown in seconds
 
@@ -353,19 +354,25 @@ public class BasicEnemy : Enemy, IInteractable
 
     private void AttackPlayer()
     {
+        SetPunchAnimation();
+
+        Invoke(nameof(GiveDamageToPlayer), damageDelay); // Delay to allow for punch animation
+    }
+    private void GiveDamageToPlayer()
+    {
         if (targetPlayer != null && targetPlayer.parent.TryGetComponent<Health>(out Health playerHealth))
         {
             // Reduce player's health
-            playerHealth.TakeDamage(attackDamage);
 
+            playerHealth.TakeDamage(attackDamage);
             // Trigger attack animation
-            SetPunchAnimation();
+
 
             // Optional: Add feedback like sound or visual effects here
             //Debug.Log($"Player health reduced by {attackDamage} by {gameObject.name}");
         }
-    }
 
+    }
     // Animasyon kontrollerini basitleştirmek için yardımcı metodlar
     private void SetIdleAnimation()
     {
