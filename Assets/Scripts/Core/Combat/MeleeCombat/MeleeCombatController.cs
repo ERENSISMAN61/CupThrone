@@ -166,28 +166,27 @@ public class MeleeCombatController : NetworkBehaviour
     // ÖR. AĞACA HASAR VERİLECEĞİ ZAMAN AĞAÇ PREFABINDE HEALTH SCRIPTI, ONUN DA İÇİNDE INTERACT FONKSİYONU YAZILIYOR
     void AttackInteractable()
     {
-
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, attackDistance, attackLayer))
-        {
+        RaycastHit[] hits = Physics.RaycastAll(ray, attackDistance, attackLayer);
 
+        // Tüm hit'leri mesafeye göre sırala (en yakından en uzağa)
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
+        {
             // Skip if we hit ourselves
             if (hit.collider.transform.IsChildOf(transform) || hit.collider.transform == transform)
             {
-
-                return;
+                continue;
             }
 
             // Check if we hit another player with a Health component
             Health targetHealth = hit.collider.GetComponentInParent<Health>();
             if (targetHealth != null && targetHealth.NetworkObject != null)
             {
-
                 // Make sure we're not hitting ourselves
                 if (targetHealth.NetworkObject.OwnerClientId != OwnerClientId)
                 {
-
                     // Call the ServerRpc to apply damage
                     DealDamageServerRpc(targetHealth.NetworkObject.NetworkObjectId, meleeDamage);
 
@@ -200,11 +199,10 @@ public class MeleeCombatController : NetworkBehaviour
             // Handle other interactable objects
             if (hit.collider.TryGetComponent(out IInteractable interactable))
             {
-
                 interactable.Interact();
                 HitTarget(hit.point);
+                return; // Exit after handling interaction
             }
-
         }
     }
 
