@@ -30,6 +30,8 @@ public class BasicEnemy : Enemy, IInteractable
     [SerializeField] private int maxHealth = 100; // Maximum health of the enemy
     [SerializeField] private NetworkVariable<int> currentHealth = new NetworkVariable<int>(100); // Networked health variable
     [SerializeField] private Collider enemyCollider; // Enemy'nin collider bileşeni
+
+    [SerializeField] private float attackthresholdOffset = 0.1f;
     private Dictionary<ulong, float> clientDamageTimestamps = new Dictionary<ulong, float>();
     private float damageTimeout = 0.5f; // Cooldown in seconds
 
@@ -312,7 +314,10 @@ public class BasicEnemy : Enemy, IInteractable
             ChasePlayer();
 
             float distanceToPlayer = Vector3.Distance(transform.position, targetPlayer.position);
-            if (distanceToPlayer <= attackRange)
+
+            //Debug.Log("distanceToPlayer: " + (distanceToPlayer - 0.1f) + " attackRange: " + attackRange);
+
+            if (distanceToPlayer - attackthresholdOffset <= attackRange)
             {
                 currentState = EnemyState.Attacking;
             }
@@ -330,7 +335,7 @@ public class BasicEnemy : Enemy, IInteractable
         }
 
         float distanceToPlayer = Vector3.Distance(transform.position, targetPlayer.position);
-        if (distanceToPlayer > attackRange)
+        if (distanceToPlayer - attackthresholdOffset > attackRange)
         {
             currentState = EnemyState.Chasing;
         }
