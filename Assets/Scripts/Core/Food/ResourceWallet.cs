@@ -72,6 +72,19 @@ public class ResourceWallet : NetworkBehaviour
                 }
             }
         }
+        else if (itemType == "WoodItem")
+        {
+            // Find the MineItem by name in the Resources or other manager
+            WoodItem[] allWoodItems = Resources.FindObjectsOfTypeAll<WoodItem>();
+            foreach (var woodItem in allWoodItems)
+            {
+                if (woodItem.name == itemName)
+                {
+                    item = woodItem;
+                    break;
+                }
+            }
+        }
 
         // Add to inventory if we found the item
         if (item != null && inventory != null)
@@ -143,6 +156,19 @@ public class ResourceWallet : NetworkBehaviour
                 if (mineItem.name == itemName)
                 {
                     item = mineItem;
+                    break;
+                }
+            }
+        }
+        else if (itemType == "WoodItem")
+        {
+            // Find the MineItem by name
+            WoodItem[] allWoodItems = Resources.FindObjectsOfTypeAll<WoodItem>();
+            foreach (var woodItem in allWoodItems)
+            {
+                if (woodItem.name == itemName)
+                {
+                    item = woodItem;
                     break;
                 }
             }

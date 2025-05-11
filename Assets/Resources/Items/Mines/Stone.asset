@@ -15,4 +15,4 @@ MonoBehaviour:
   name: Stone
   icon: {fileID: 21300000, guid: 18dfb3f7ab881c344a5387b6f32e11d2, type: 3}
   maxStackSize: 64
-  useText: Just stone.
+  useText: Used for crafting stone materials.

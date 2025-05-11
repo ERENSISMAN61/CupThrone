@@ -189,3 +189,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
+  woodToAdd: {fileID: 11400000, guid: 2a53756541dce1240a848291cdbf4a87, type: 2}
+  quantity: 1

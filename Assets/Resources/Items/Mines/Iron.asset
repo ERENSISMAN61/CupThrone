@@ -15,4 +15,4 @@ MonoBehaviour:
   name: Iron
   icon: {fileID: 21300000, guid: eae3cd1af348081428aa23949b445dcf, type: 3}
   maxStackSize: 64
-  useText: Iron ore.
+  useText: Used for crafting iron materials.

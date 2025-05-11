@@ -6,6 +6,9 @@ public class TreeHealth : NetworkBehaviour, IInteractable
 {
     [SerializeField] private int maxHealth = 100;
     private NetworkVariable<int> currentHealth = new NetworkVariable<int>();
+    [SerializeField] private WoodItem woodToAdd; // The item that will be dropped when mine is destroyed
+    [SerializeField] private int quantity = 1; // How many items to drop
+
 
     // Track recent damage events to prevent duplicates
     private Dictionary<ulong, float> clientDamageTimestamps = new Dictionary<ulong, float>();
@@ -73,8 +76,33 @@ public class TreeHealth : NetworkBehaviour, IInteractable
 
         if (currentHealth.Value <= 0)
         {
-            //Debug.Log("Tree health reached zero, despawning");
+            //Debug.Log("Mine health reached zero, despawning");
+            
+            // Add mine item to the player's inventory who dealt the last blow
+            AddToInventory(clientId);
+            
             GetComponent<NetworkObject>().Despawn();
+        }
+    }
+
+    private void AddToInventory(ulong clientId)
+    {
+        if (!IsServer || woodToAdd == null)
+            return;
+            
+        // Find the player who dealt the final blow
+        foreach (var playerNetObj in FindObjectsOfType<NetworkObject>())
+        {
+            if (playerNetObj.OwnerClientId == clientId)
+            {
+                ResourceWallet playerWallet = playerNetObj.GetComponent<ResourceWallet>();
+                if (playerWallet != null)
+                {
+                    // Add the mine item to the player's inventory
+                    playerWallet.AddResourceToInventory(woodToAdd.name, quantity, "WoodItem");
+                    break;
+                }
+            }
         }
     }
 }
