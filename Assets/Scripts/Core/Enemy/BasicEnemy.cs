@@ -68,6 +68,7 @@ public class BasicEnemy : Enemy, IInteractable
     }
 
     private EnemyState currentState = EnemyState.Idle;
+    private bool isGettingHit = false; // Düşmanın hasar alıp almadığını takip etmek için
 
     private void Awake()
     {
@@ -331,6 +332,9 @@ public class BasicEnemy : Enemy, IInteractable
     {
         if (currentHealth.Value == 0) return;
 
+        // Düşman hasar alıyorsa saldırı yapmasın
+        if (isGettingHit) return;
+
         if (targetPlayer == null || !targetPlayer.gameObject.activeInHierarchy)
         {
             currentState = EnemyState.Idle;
@@ -366,7 +370,7 @@ public class BasicEnemy : Enemy, IInteractable
         //Invoke(nameof(OnPunchAnimationEnd), 1.0f);
     }
 
-    public void GiveDamageToPlayer()
+    private void GiveDamageToPlayer()
     {
         if (!IsServer) return;
 
@@ -419,22 +423,25 @@ public class BasicEnemy : Enemy, IInteractable
     {
         if (animator != null)
         {
+            isGettingHit = true;
+            animator.SetBool(isIdleParam, false);
             animator.SetBool(isGettingHitParam, true);
 
             // Hit animasyonu genellikle kısa süreli olduğu için bir coroutine ile reset edelim
-            StartCoroutine(ResetHitAnimation());
+            // StartCoroutine(ResetHitAnimation());
         }
     }
 
-    private IEnumerator ResetHitAnimation()
-    {
-        yield return new WaitForSeconds(0.5f); // Hit animasyon süresine göre ayarlayın
+    // private IEnumerator ResetHitAnimation()
+    // {
+    //     yield return new WaitForSeconds(0.5f); // Hit animasyon süresine göre ayarlayın
 
-        if (animator != null)
-        {
-            animator.SetBool(isGettingHitParam, false);
-        }
-    }
+    //     if (animator != null)
+    //     {
+    //         isGettingHit = false;
+    //         animator.SetBool(isGettingHitParam, false);
+    //     }
+    // }
 
 
     private void FindNearestPlayer()
@@ -723,6 +730,21 @@ public class BasicEnemy : Enemy, IInteractable
                 SetIdleAnimation();
             }
         }
+    }
+
+    // Saldırı sırasında hasar vermek için Animation Event'ten çağrılacak metod
+    public void OnAttackAnimationHit()
+    {
+        // Bu metod, animasyonda tam yumruk vuruş anında bir Animation Event olarak çağrılmalı
+        GiveDamageToPlayer();
+    }
+
+    // Get Hit animasyonu bittiğinde çağrılacak metod
+    public void OnHitAnimationEnd()
+    {
+        // Bu metod, animasyonda hasar alma animasyonu bittiğinde bir Animation Event olarak çağrılmalı
+        isGettingHit = false;
+        animator.SetBool(isGettingHitParam, false);
     }
 
 }
