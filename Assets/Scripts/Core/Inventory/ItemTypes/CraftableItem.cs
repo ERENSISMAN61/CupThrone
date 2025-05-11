@@ -2,11 +2,11 @@
 using System.Text;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Crafting Item", menuName = "Items/Crafting Item")]
-public class CraftingItem : InventoryItem
+[CreateAssetMenu(fileName = "New Craftable Item", menuName = "Items/Craftable Item")]
+public class CraftableItem : InventoryItem
 {
     [Header("Crafting Item Data")]
-    [SerializeField] private string useText = "Craft something...";
+    [SerializeField] private string useText = "Does something...";
     public override string GetInfoDisplayText()
     {
         StringBuilder builder = new StringBuilder();

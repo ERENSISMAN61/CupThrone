@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -169,5 +170,10 @@ public class ItemContainer : IItemContainer
         }
 
         return totalCount; // Toplam sayıyı döndürüyoruz.
+    }
+
+    public IEnumerable<ItemSlot> GetAllSlots()
+    {
+        return itemSlots;
     }
 }
