@@ -228,7 +228,9 @@ public class BasicEnemy : Enemy, IInteractable
         }
         else
         {
-            SetIdleAnimation();
+            if (animator != null
+            && animator.GetBool(isPunchingParam) == false && animator.GetBool(isGettingHitParam) == false)
+                SetIdleAnimation();
         }
 
         if (!IsServer) return;
@@ -354,24 +356,32 @@ public class BasicEnemy : Enemy, IInteractable
 
     private void AttackPlayer()
     {
+        // Yumruk animasyonunu başlat, hasar Animation Event ile verilecek
         SetPunchAnimation();
 
-        Invoke(nameof(GiveDamageToPlayer), damageDelay); // Delay to allow for punch animation
+        // Not: GiveDamageToPlayer artık Animation Event tarafından çağrılacak
+        // Eğer Unity Editor'de Animation Event eklemediyseniz,
+        // burada bir güvenlik önlemi olarak bir süre sonra
+        // animasyonu sıfırlamak için bir Invoke ekleyebiliriz
+        //Invoke(nameof(OnPunchAnimationEnd), 1.0f);
     }
-    private void GiveDamageToPlayer()
+
+    public void GiveDamageToPlayer()
     {
+        if (!IsServer) return;
+
         if (targetPlayer != null && targetPlayer.parent.TryGetComponent<Health>(out Health playerHealth))
         {
-            // Reduce player's health
-
+            // Check if the punching animation is active
+            // if (animator != null && animator.GetBool(isPunchingParam))
+            // {
             playerHealth.TakeDamage(attackDamage);
-            // Trigger attack animation
-
-
-            // Optional: Add feedback like sound or visual effects here
-            //Debug.Log($"Player health reduced by {attackDamage} by {gameObject.name}");
+            // }
+            // else
+            // {
+            //     Debug.LogWarning("[GiveDamageToPlayer] Damage not applied because punching animation is not active.");
+            // }
         }
-
     }
     // Animasyon kontrollerini basitleştirmek için yardımcı metodlar
     private void SetIdleAnimation()
@@ -453,11 +463,28 @@ public class BasicEnemy : Enemy, IInteractable
             // Adjust destination to maintain attack range
             Vector3 directionToPlayer = (targetPlayer.position - transform.position).normalized;
             Vector3 adjustedPosition = targetPlayer.position - directionToPlayer * attackRange;
-            navMeshAgent.SetDestination(adjustedPosition);
+
+            // Log NavMeshAgent properties for debugging
+            //Debug.Log($"[ChasePlayer] isStopped: {navMeshAgent.isStopped}, velocity: {navMeshAgent.velocity}, remainingDistance: {navMeshAgent.remainingDistance}, pathPending: {navMeshAgent.pathPending}");
+
+            // Check if the adjusted position is on the NavMesh
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(adjustedPosition, out hit, 1.0f, NavMesh.AllAreas))
+            {
+                navMeshAgent.SetDestination(hit.position);
+            }
+            else
+            {
+                //Debug.LogWarning($"[ChasePlayer] Adjusted position is not on the NavMesh: {adjustedPosition}");
+            }
 
             // Smoothly rotate towards the player while chasing
             Quaternion lookRotation = Quaternion.LookRotation(new Vector3(directionToPlayer.x, 0, directionToPlayer.z));
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+        }
+        else
+        {
+            //Debug.LogWarning("[ChasePlayer] Target player or NavMeshAgent is null/disabled.");
         }
     }
 
@@ -584,7 +611,10 @@ public class BasicEnemy : Enemy, IInteractable
         //Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
         currentHealth.Value -= damage;
         //Debug.Log($"AFTER: BasicEnemy took {damage} damage from client {clientId}. Remaining health: {currentHealth.Value}");
-        SetHitAnimation();
+
+        if (animator.GetBool(isPunchingParam) == false) SetHitAnimation();
+
+
 
         if (currentHealth.Value <= 0)
         {
@@ -672,4 +702,27 @@ public class BasicEnemy : Enemy, IInteractable
             ApplyDamage_Internal(25, NetworkManager.Singleton.LocalClientId);
         }
     }
+
+    // Animation Event'ler için kullanılacak metodlar
+    public void OnPunchAnimationEnd()
+    {
+        // Bu metod animasyonda bir Animation Event olarak çağrılmalı
+        if (animator != null)
+        {
+            // Yumruk animasyonunu sonlandır
+            animator.SetBool(isPunchingParam, false);
+
+            // Mevcut duruma göre uygun animasyona geç
+            if (currentState == EnemyState.Chasing ||
+                (navMeshAgent != null && navMeshAgent.velocity.sqrMagnitude > movementThreshold * movementThreshold))
+            {
+                SetWalkingAnimation();
+            }
+            else
+            {
+                SetIdleAnimation();
+            }
+        }
+    }
+
 }
