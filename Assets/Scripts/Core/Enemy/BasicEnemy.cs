@@ -668,6 +668,7 @@ public class BasicEnemy : Enemy, IInteractable
         }
 
         SetVisible(false);
+        SetVisibleClientRpc(false); // Client'larda da görünmez yap
         // Respawn enemy at a new location
         OnEnemyDefeated?.Invoke(this);
 

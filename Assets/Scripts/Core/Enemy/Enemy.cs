@@ -49,4 +49,10 @@ public abstract class Enemy : NetworkBehaviour
             }
         }
     }
+
+    [ClientRpc]
+    protected void SetVisibleClientRpc(bool visible)
+    {
+        SetVisible(visible);
+    }
 }
