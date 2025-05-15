@@ -49,13 +49,17 @@ public class BasicEnemy : Enemy, IInteractable
     private bool isPatrolling = false; // Devriye geziyor mu
 
     private float timeSinceLastChase = 0f; // Son takipten bu yana geçen süre
-    [SerializeField] private float chaseTimeout = 2f; // Takipten sonra devriyeye dönme süresi
-
-    // Animator parametreleri
+    [SerializeField] private float chaseTimeout = 2f; // Takipten sonra devriyeye dönme süresi    // Animator parametreleri
     private readonly int isIdleParam = Animator.StringToHash("isIdle");
     private readonly int isWalkingParam = Animator.StringToHash("isWalking");
     private readonly int isGettingHitParam = Animator.StringToHash("isGettingHit");
     private readonly int isPunchingParam = Animator.StringToHash("isPunching");
+
+    // NetworkVariable animator parameters for synchronizing animations over the network
+    private NetworkVariable<bool> networkIsIdle = new NetworkVariable<bool>(true, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> networkIsWalking = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> networkIsGettingHit = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> networkIsPunching = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public event Action<BasicEnemy> OnEnemyDefeated; // Düşman yenildiğinde tetiklenen olay
 
@@ -90,10 +94,11 @@ public class BasicEnemy : Enemy, IInteractable
         }
 
         // Spawn pozisyonunu kaydet
-        spawnPosition = transform.position;
-
-        // Başlangıçta Idle animasyonu ayarla
-        SetIdleAnimation();
+        spawnPosition = transform.position;        // Başlangıçta Idle animasyonu ayarla
+        networkIsIdle.Value = true;
+        networkIsWalking.Value = false;
+        networkIsGettingHit.Value = false;
+        networkIsPunching.Value = false;
 
         // Initialize current health
         currentHealth.Value = maxHealth;
@@ -131,12 +136,18 @@ public class BasicEnemy : Enemy, IInteractable
             InitializeNavMeshAgent();
         }
     }
-
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
-        // Subscribe to health changes
+        // Initialize animation states
+        if (IsServer)
+        {
+            networkIsIdle.Value = true;
+            networkIsWalking.Value = false;
+            networkIsGettingHit.Value = false;
+            networkIsPunching.Value = false;
+        }
 
         // NavMesh ve NavMeshAgent'ı başlat
         if (initNavMeshCoroutine != null)
@@ -214,12 +225,23 @@ public class BasicEnemy : Enemy, IInteractable
             }
         }
     }
-
     private void Update()
     {
         //Debug.Log("curr State:" + currentState);
         // Client'lerde düşmanlar server tarafından kontrol ediliyor
         if (isDead) return;
+
+        // Apply network animation values to the animator
+        if (animator != null)
+        {
+            animator.SetBool(isIdleParam, networkIsIdle.Value);
+            animator.SetBool(isWalkingParam, networkIsWalking.Value);
+            animator.SetBool(isGettingHitParam, networkIsGettingHit.Value);
+            animator.SetBool(isPunchingParam, networkIsPunching.Value);
+        }
+
+        // Server-side logic starts here
+        if (!IsServer) return;
 
         // Hareket hızını kontrol ederek animasyonları ayarla
         actualSpeed = new Vector2(navMeshAgent.velocity.x, navMeshAgent.velocity.z).magnitude;
@@ -230,11 +252,9 @@ public class BasicEnemy : Enemy, IInteractable
         else
         {
             if (animator != null
-            && animator.GetBool(isPunchingParam) == false && animator.GetBool(isGettingHitParam) == false)
+            && !networkIsPunching.Value && !networkIsGettingHit.Value)
                 SetIdleAnimation();
         }
-
-        if (!IsServer) return;
 
         // Ensure the enemy always faces the player
         if (targetPlayer != null && currentState != EnemyState.Patrolling)
@@ -386,50 +406,45 @@ public class BasicEnemy : Enemy, IInteractable
             //     Debug.LogWarning("[GiveDamageToPlayer] Damage not applied because punching animation is not active.");
             // }
         }
-    }
-    // Animasyon kontrollerini basitleştirmek için yardımcı metodlar
+    }    // Animasyon kontrollerini basitleştirmek için yardımcı metodlar
     private void SetIdleAnimation()
     {
-        if (animator != null)
-        {
-            animator.SetBool(isIdleParam, true);
-            animator.SetBool(isWalkingParam, false);
-            animator.SetBool(isPunchingParam, false);
-        }
+        if (!IsServer) return;
+
+        networkIsIdle.Value = true;
+        networkIsWalking.Value = false;
+        networkIsPunching.Value = false;
     }
 
     private void SetWalkingAnimation()
     {
-        if (animator != null)
-        {
-            animator.SetBool(isIdleParam, false);
-            animator.SetBool(isWalkingParam, true);
-            animator.SetBool(isPunchingParam, false);
-        }
+        if (!IsServer) return;
+
+        networkIsIdle.Value = false;
+        networkIsWalking.Value = true;
+        networkIsPunching.Value = false;
     }
 
     private void SetPunchAnimation()
     {
+        if (!IsServer) return;
+
         //Debug.Log("Attacking SetPunchAnimation çağrıldı");
-        if (animator != null)
-        {
-            animator.SetBool(isIdleParam, false);
-            animator.SetBool(isWalkingParam, false);
-            animator.SetBool(isPunchingParam, true);
-        }
+        networkIsIdle.Value = false;
+        networkIsWalking.Value = false;
+        networkIsPunching.Value = true;
     }
 
     private void SetHitAnimation()
     {
-        if (animator != null)
-        {
-            isGettingHit = true;
-            animator.SetBool(isIdleParam, false);
-            animator.SetBool(isGettingHitParam, true);
+        if (!IsServer) return;
 
-            // Hit animasyonu genellikle kısa süreli olduğu için bir coroutine ile reset edelim
-            // StartCoroutine(ResetHitAnimation());
-        }
+        isGettingHit = true;
+        networkIsIdle.Value = false;
+        networkIsGettingHit.Value = true;
+
+        // Hit animasyonu genellikle kısa süreli olduğu için bir coroutine ile reset edelim
+        // StartCoroutine(ResetHitAnimation());
     }
 
     // private IEnumerator ResetHitAnimation()
@@ -613,13 +628,11 @@ public class BasicEnemy : Enemy, IInteractable
             }
         }
 
-        clientDamageTimestamps[clientId] = Time.time;
-
-        //Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
+        clientDamageTimestamps[clientId] = Time.time;        //Debug.Log($"BEFORE: BasicEnemy health: {currentHealth.Value}");
         currentHealth.Value -= damage;
         //Debug.Log($"AFTER: BasicEnemy took {damage} damage from client {clientId}. Remaining health: {currentHealth.Value}");
 
-        if (animator.GetBool(isPunchingParam) == false) SetHitAnimation();
+        if (!networkIsPunching.Value) SetHitAnimation();
 
 
 
@@ -673,9 +686,11 @@ public class BasicEnemy : Enemy, IInteractable
         spawnPosition = newPosition; // Update spawn position
         // Enable visuals and movement
         SetVisible(true);
-        enemyCollider.enabled = true; // Enable collider
-        // Reset animation state
-        SetIdleAnimation();
+        enemyCollider.enabled = true; // Enable collider        // Reset animation state
+        networkIsIdle.Value = true;
+        networkIsWalking.Value = false;
+        networkIsGettingHit.Value = false;
+        networkIsPunching.Value = false;
 
 
 
@@ -708,27 +723,24 @@ public class BasicEnemy : Enemy, IInteractable
             // For server, use server's client ID (usually 0)
             ApplyDamage_Internal(25, NetworkManager.Singleton.LocalClientId);
         }
-    }
-
-    // Animation Event'ler için kullanılacak metodlar
+    }    // Animation Event'ler için kullanılacak metodlar
     public void OnPunchAnimationEnd()
     {
         // Bu metod animasyonda bir Animation Event olarak çağrılmalı
-        if (animator != null)
-        {
-            // Yumruk animasyonunu sonlandır
-            animator.SetBool(isPunchingParam, false);
+        if (!IsServer) return;
 
-            // Mevcut duruma göre uygun animasyona geç
-            if (currentState == EnemyState.Chasing ||
-                (navMeshAgent != null && navMeshAgent.velocity.sqrMagnitude > movementThreshold * movementThreshold))
-            {
-                SetWalkingAnimation();
-            }
-            else
-            {
-                SetIdleAnimation();
-            }
+        // Yumruk animasyonunu sonlandır
+        networkIsPunching.Value = false;
+
+        // Mevcut duruma göre uygun animasyona geç
+        if (currentState == EnemyState.Chasing ||
+            (navMeshAgent != null && navMeshAgent.velocity.sqrMagnitude > movementThreshold * movementThreshold))
+        {
+            SetWalkingAnimation();
+        }
+        else
+        {
+            SetIdleAnimation();
         }
     }
 
@@ -737,14 +749,14 @@ public class BasicEnemy : Enemy, IInteractable
     {
         // Bu metod, animasyonda tam yumruk vuruş anında bir Animation Event olarak çağrılmalı
         GiveDamageToPlayer();
-    }
-
-    // Get Hit animasyonu bittiğinde çağrılacak metod
+    }    // Get Hit animasyonu bittiğinde çağrılacak metod
     public void OnHitAnimationEnd()
     {
         // Bu metod, animasyonda hasar alma animasyonu bittiğinde bir Animation Event olarak çağrılmalı
+        if (!IsServer) return;
+
         isGettingHit = false;
-        animator.SetBool(isGettingHitParam, false);
+        networkIsGettingHit.Value = false;
     }
 
 }
