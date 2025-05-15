@@ -650,6 +650,7 @@ public class BasicEnemy : Enemy, IInteractable
         // Trigger defeated event
 
         enemyCollider.enabled = false; // Disable collider
+        DisableColliderClientRpc(); // Client'larda da collider'ı kapat
         targetPlayer = null; // Clear target player
         // Stop patrol behavior
         isPatrolling = false;
@@ -674,6 +675,12 @@ public class BasicEnemy : Enemy, IInteractable
 
     }
 
+    [ClientRpc]
+    private void DisableColliderClientRpc()
+    {
+        if (enemyCollider != null)
+            enemyCollider.enabled = false;
+    }
 
     public void Reset(Vector3 newPosition)
     {
