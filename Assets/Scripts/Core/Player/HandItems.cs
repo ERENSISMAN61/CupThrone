@@ -5,6 +5,7 @@ public class HandItems : MonoBehaviour
 {
     [SerializeField] private Hotbar hotbar; // Reference to the Hotbar
     [SerializeField] private List<GameObject> HoldableHandItems;
+    [SerializeField] private List<GameObject> BodyHandItems; // Player modelinin elindeki itemler
     [SerializeField] private GameObject bowPrefab;
 
     private GameObject currentItemPrefab;
@@ -19,7 +20,15 @@ public class HandItems : MonoBehaviour
             if (item != null)
                 item.SetActive(false);
         }
-
+        // BodyHandItems'i deaktif et
+        if (BodyHandItems != null)
+        {
+            foreach (var item in BodyHandItems)
+            {
+                if (item != null)
+                    item.SetActive(false);
+            }
+        }
         // Start with the first hotbar slot
         SelectHotbarSlot(0);
     }
@@ -66,29 +75,39 @@ public class HandItems : MonoBehaviour
     private void SelectHotbarSlot(int slotIndex)
     {
         currentHotbarIndex = slotIndex;
-
         // Get all hotbar slots
         HotbarSlot[] slots = hotbar.GetComponentsInChildren<HotbarSlot>();
-
         if (slotIndex < slots.Length)
         {
             HotbarSlot slot = slots[slotIndex];
             if (slot != null)
             {
-                // Deactivate current item
+                // Deactivate current item (FPS eldeki)
                 if (currentItemPrefab != null)
                     currentItemPrefab.SetActive(false);
-
+                // BodyHandItems'da da aktifliği ayarla
+                if (BodyHandItems != null)
+                {
+                    foreach (var item in BodyHandItems)
+                    {
+                        if (item != null)
+                            item.SetActive(false);
+                    }
+                }
                 // Get hand item based on hotbar item
                 int handItemIndex = GetHandItemIndexForHotbarItem(slot.SlotItem);
-
                 if (handItemIndex >= 0 && handItemIndex < HoldableHandItems.Count)
                 {
-                    // Activate the new hand item
+                    // Activate the new hand item (FPS eldeki)
                     currentItemPrefab = HoldableHandItems[handItemIndex];
                     currentItemPrefab.SetActive(true);
-                    //Debug.Log($"Activated item: {currentItemPrefab.name}");
-
+                    // BodyHandItems'da da aynı indexteki itemi aktif et
+                    if (BodyHandItems != null && handItemIndex < BodyHandItems.Count)
+                    {
+                        var bodyItem = BodyHandItems[handItemIndex];
+                        if (bodyItem != null)
+                            bodyItem.SetActive(true);
+                    }
                     // Update bow status
                     hasBowInHand = (currentItemPrefab == bowPrefab);
                 }

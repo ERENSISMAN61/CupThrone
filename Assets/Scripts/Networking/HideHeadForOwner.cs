@@ -8,6 +8,8 @@ public class HideHeadForOwner : NetworkBehaviour
     [SerializeField] private GameObject faceStuff;
     [SerializeField] private GameObject armModel; // Oyuncunun gövde modeli
     [SerializeField] private GameObject hotbarUI; // Oyuncunun hotbar UI'si
+    [SerializeField] private GameObject playerWrist; 
+
     // [SerializeField] private GameObject inventoryUI; // Oyuncunun envanter UI'si
     // [SerializeField] private GameObject healthBar;
 
@@ -20,6 +22,7 @@ public class HideHeadForOwner : NetworkBehaviour
             faceStuff.SetActive(false);
             armModel.SetActive(true); // Kolları gizle
             hotbarUI.SetActive(true); 
+            playerWrist.SetActive(false); 
         }
         else
         {
@@ -28,6 +31,7 @@ public class HideHeadForOwner : NetworkBehaviour
             faceStuff.SetActive(true);
             armModel.SetActive(false); // Kolları gizle
             hotbarUI.SetActive(false); // Hotbar UI'sini gizle
+            playerWrist.SetActive(true); // Diğer oyuncuların karakterlerinde gövde görünür
         }
     }
 }
