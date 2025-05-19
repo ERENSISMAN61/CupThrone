@@ -1252,7 +1252,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: aa1cfdb1be36f124091ac5c4860ecda1, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -1404,6 +1404,8 @@ MonoBehaviour:
   currentHealth:
     m_InternalValue: 100
   enemyCollider: {fileID: 5562668622315101160}
+  damageDelay: 0.5
+  attackthresholdOffset: 0.1
   chaseTimeout: 2
 --- !u!54 &1861276525604891435
 Rigidbody:
