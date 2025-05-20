@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Stone Sword
   m_EditorClassIdentifier: 
   name: Stone Sword
-  icon: {fileID: 21300000, guid: 28d2c2677149d45e290e8fa042b1b80f, type: 3}
+  icon: {fileID: 21300000, guid: b703301729445b94291d91e3282fbe67, type: 3}
   maxStackSize: 1
   useText: Does something...
