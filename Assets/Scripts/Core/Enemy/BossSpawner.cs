@@ -107,7 +107,7 @@ public class BossSpawner : NetworkBehaviour
 
     private IEnumerator DelayedSpawnBoss()
     {
-        if (isSpawning || spawnedBoss != null) yield break;
+        if (isSpawning || spawnedBoss != null && spawnedBoss.gameObject.activeInHierarchy) yield break;
         yield return new WaitForSeconds(initialSpawnDelay);
         if (bossPrefab.GetComponent<CapsuleCollider>() != null)
         {
@@ -122,7 +122,10 @@ public class BossSpawner : NetworkBehaviour
             bossRadius = 1f;
         }
         isSpawning = true;
-        spawnedBoss = SpawnBoss();
+        if (spawnedBoss == null || !spawnedBoss.gameObject.activeInHierarchy)
+        {
+            spawnedBoss = SpawnBoss();
+        }
         isSpawning = false;
     }
 

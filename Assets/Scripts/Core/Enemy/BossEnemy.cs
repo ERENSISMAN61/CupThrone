@@ -27,8 +27,8 @@ public class BossEnemy : Enemy, IInteractable
     [SerializeField] private float attackRange = 2.0f; // Enemy'nin saldırı menzili
     [SerializeField] private float attackCooldown = 1.5f; // Saldırı bekleme süresi
 
-    [SerializeField] private int maxHealth = 100; // Maximum health of the enemy
-    [SerializeField] private NetworkVariable<int> currentHealth = new NetworkVariable<int>(100); // Networked health variable
+    [SerializeField] public int maxHealth = 100; // Maximum health of the enemy
+    [SerializeField] public NetworkVariable<int> currentHealth = new NetworkVariable<int>(100); // Networked health variable
     [SerializeField] private Collider enemyCollider; // Enemy'nin collider bileşeni
     [SerializeField] private float damageDelay = 0.5f; // Hasar verme gecikmesi
     [SerializeField] private float attackthresholdOffset = 0.1f;
