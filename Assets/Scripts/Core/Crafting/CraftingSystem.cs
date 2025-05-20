@@ -44,7 +44,7 @@ public class CraftingSystem : MonoBehaviour
         {
             GameObject itemUI = Instantiate(craftingItemPrefab, craftingListContainer);
             itemUI.GetComponentInChildren<TextMeshProUGUI>().text = recipe.itemName;
-            itemUI.GetComponentInChildren<Image>().sprite = recipe.itemIcon;
+            itemUI.transform.Find("CraftingItemIcon").GetComponent<Image>().sprite = recipe.itemIcon;
 
             Button craftButton = itemUI.GetComponentInChildren<Button>();
             craftButton.onClick.AddListener(() => AttemptCraft(recipe));
