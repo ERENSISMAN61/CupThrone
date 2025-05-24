@@ -220,7 +220,7 @@ public class MeleeCombatController : NetworkBehaviour
                 targetHealth.TakeDamage(damageAmount);
 
                 // Log the damage (optional)
-                Debug.Log($"Player {OwnerClientId} dealt {damageAmount} damage to player {targetObject.OwnerClientId}");
+                //Debug.Log($"Player {OwnerClientId} dealt {damageAmount} damage to player {targetObject.OwnerClientId}");
             }
         }
     }

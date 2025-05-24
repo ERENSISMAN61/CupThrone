@@ -1459,7 +1459,7 @@ MonoBehaviour:
   attackDamage: 40
   attackRange: 10
   attackCooldown: 1.5
-  maxHealth: 2000
+  maxHealth: 100
   currentHealth:
     m_InternalValue: 100
   enemyCollider: {fileID: 6744394663526882192}

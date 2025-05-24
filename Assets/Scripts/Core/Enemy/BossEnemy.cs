@@ -61,8 +61,8 @@ public class BossEnemy : Enemy, IInteractable
     private NetworkVariable<bool> networkIsGettingHit = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkVariable<bool> networkIsPunching = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    public event Action<BossEnemy> OnEnemyDefeated; // Düşman yenildiğinde tetiklenen olay
-
+    //public event Action<BossEnemy> OnEnemyDefeated; // Düşman yenildiğinde tetiklenen olay
+    public static event Action<BossEnemy> OnBossDefeated;
     private enum EnemyState
     {
         Idle,
@@ -670,8 +670,9 @@ public class BossEnemy : Enemy, IInteractable
 
         SetVisible(false);
         SetVisibleClientRpc(false); // Client'larda da görünmez yap
-        // Respawn enemy at a new location
-        OnEnemyDefeated?.Invoke(this);
+
+
+        OnBossDefeated?.Invoke(this);
 
     }
 
@@ -682,7 +683,7 @@ public class BossEnemy : Enemy, IInteractable
             enemyCollider.enabled = false;
     }
 
-    public void Reset(Vector3 newPosition)
+    public void ResetBossObject(Vector3 newPosition)
     {
         targetPlayer = null; // Clear target player
         //Debug.LogError("BasicEnemy Reset çağrıldı");

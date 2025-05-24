@@ -152,7 +152,7 @@ public class BossSpawner : NetworkBehaviour
             {
                 bossInstance.transform.SetParent(bossContainer);
             }
-            bossInstance.OnEnemyDefeated += HandleBossDefeated;
+            //bossInstance.OnBossDefeated += HandleBossDefeated;
             return bossInstance;
         }
         catch (System.Exception e)
@@ -171,7 +171,7 @@ public class BossSpawner : NetworkBehaviour
     {
         yield return new WaitForSeconds(Random.Range(10f, 30f));
         Vector3 newSpawnPoint = GetSpawnPoint();
-        boss.Reset(newSpawnPoint);
+        boss.ResetBossObject(newSpawnPoint);
     }
 
     private Vector3 GetSpawnPoint()

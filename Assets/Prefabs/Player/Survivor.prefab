@@ -3504,8 +3504,9 @@ GameObject:
   - component: {fileID: 22131603248550476}
   - component: {fileID: 1206416537159935338}
   - component: {fileID: 2523407902014677471}
+  - component: {fileID: 7309412838895811935}
   m_Layer: 11
-  m_Name: Tank
+  m_Name: Survivor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3972,6 +3973,37 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   inventory: {fileID: 11400000, guid: 504317bc387cf044d9ae16fb8868831f, type: 2}
   TotalResources:
+    m_InternalValue: 0
+--- !u!114 &7309412838895811935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5599372417792939216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd5ec85fc41b98741a0957701aabc072, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  resourcesCollected:
+    m_InternalValue: 0
+  mobsKilled:
+    m_InternalValue: 0
+  playersKilled:
+    m_InternalValue: 0
+  bossKills:
+    m_InternalValue: 0
+  bossDamage:
+    m_InternalValue: 0
+  chestsOpened:
+    m_InternalValue: 0
+  goldCollected:
+    m_InternalValue: 0
+  distanceTraveled:
+    m_InternalValue: 0
+  deaths:
     m_InternalValue: 0
 --- !u!1 &5605557584921509563
 GameObject:

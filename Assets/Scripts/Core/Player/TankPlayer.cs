@@ -43,10 +43,10 @@ public class TankPlayer : NetworkBehaviour
         }
         // Set the player's rotation to the terrain normal
         transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal) * transform.rotation;
-        
+
         // Wait for 1 second
         yield return new WaitForSeconds(1f);
-        
+
         // Set the player's gravity to 1
         rb.useGravity = true;
         rb.isKinematic = false;
